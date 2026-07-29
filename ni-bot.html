@@ -500,6 +500,30 @@ html[data-theme="light"] .badge-unverified{color:#7A5C0C;background:rgba(244,197
 .badge-blocked svg{width:13px;height:13px;}
 .badge-blocked b{font-weight:700;color:var(--text);}
 
+/* 길이 제한으로 답변이 잘렸을 때 */
+.trunc-note{
+  align-self:stretch;
+  display:flex;align-items:center;gap:11px;flex-wrap:wrap;
+  padding:10px 13px;border-radius:var(--radius-sm);
+  background:var(--warn-bg, rgba(244,197,96,.12));
+  border:1px solid rgba(244,197,96,.42);
+  font-size:.79rem;line-height:1.6;color:var(--text-muted);
+}
+html[data-theme="light"] .trunc-note{background:rgba(244,197,96,.2);border-color:rgba(185,140,20,.45);}
+.trunc-note svg{width:15px;height:15px;flex:none;color:var(--gold);}
+html[data-theme="light"] .trunc-note svg{color:#7D6011;}
+.trunc-note .tn-text{flex:1;min-width:170px;}
+.trunc-note b{color:var(--gold);font-weight:700;}
+html[data-theme="light"] .trunc-note b{color:#7A5C0C;}
+.btn-continue{
+  flex:none;padding:6px 14px;border-radius:99px;
+  font-size:.78rem;font-weight:500;
+  background:linear-gradient(135deg,var(--secondary),var(--primary));color:#fff;
+  transition:all var(--transition);
+}
+.btn-continue:hover:not(:disabled){filter:brightness(1.12);}
+.btn-continue:disabled{opacity:.45;cursor:not-allowed;}
+
 /* Welcome */
 .welcome h3{margin:0 0 4px;font-size:1.14rem;color:var(--accent);}
 html[data-theme="light"] .welcome h3{color:var(--primary);}
@@ -1278,7 +1302,11 @@ function buildClassifierInput(question, history){
    ══════════════════════════════════════════════════════════════════════ */
 const API_ENDPOINT   = 'https://api.anthropic.com/v1/messages';
 const API_VERSION    = '2023-06-01';
-const MAX_TOKENS     = 4096;
+/* 표준 답변 구조(핵심정의~확인질문) + 웹 검색 도구 블록이 모두 출력 토큰을 소비하므로
+   4096 으로는 답변이 문장 중간에서 잘립니다. 넉넉히 확보하고, 모델이 이 값을
+   허용하지 않으면 MAX_TOKENS_FALLBACK 으로 1회 자동 재시도합니다. */
+const MAX_TOKENS          = 16000;
+const MAX_TOKENS_FALLBACK = 4096;
 const MAX_SEARCHES   = 5;
 const HISTORY_TURNS  = 50;   // localStorage 보존 턴 수
 const CONTEXT_TURNS  = 10;   // API 전송 턴 수
@@ -1432,6 +1460,7 @@ const validate = Object.freeze({
       searched: m.searched === true,
       blocked: m.blocked === true,
       blockReason: typeof m.blockReason === 'string' ? m.blockReason.slice(0, 40) : '',
+      truncated: m.truncated === true,
       ts: typeof m.ts === 'number' ? m.ts : Date.now()
     }));
   }
@@ -1785,6 +1814,68 @@ function buildBlockedBadge(reason){
   return badge;
 }
 
+const CONTINUE_PROMPT =
+  '직전 답변이 길이 제한으로 문장 중간에서 중단되었습니다. 중단된 지점부터 이어서 계속 작성해 주십시오. ' +
+  '이미 작성한 내용을 다시 반복하지 말고, 끊긴 문장부터 자연스럽게 이어 주십시오.';
+
+/** 해당 이력 항목의 truncated 표시를 해제합니다. (불변 갱신) */
+function clearTruncatedFlag(entryTs){
+  if(typeof entryTs !== 'number') return;
+  const next = state.history.map(h =>
+    (h.role === 'assistant' && h.ts === entryTs && h.truncated)
+      ? Object.freeze(Object.assign({}, h, { truncated: false }))
+      : h
+  );
+  setState({ history: Object.freeze(next) });
+  store.setJSON(STORAGE.HISTORY, state.history);
+}
+
+function buildTruncatedNotice(entryTs){
+  const box = document.createElement('div');
+  box.className = 'trunc-note';
+  box.setAttribute('role', 'note');
+
+  const text = document.createElement('span');
+  text.className = 'tn-text';
+  text.innerHTML = '<b>답변이 길이 제한으로 중단되었습니다.</b> 아래 버튼을 누르면 끊긴 지점부터 이어서 생성합니다.';
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'btn-continue';
+  button.textContent = '이어서 계속';
+
+  button.addEventListener('click', async () => {
+    if(state.busy){ toast('응답 생성이 끝난 뒤 다시 시도해 주십시오.', 'error'); return; }
+
+    const before = state.history.length;
+    button.disabled = true;
+    button.textContent = '생성 중…';
+
+    try{
+      await sendMessage(CONTINUE_PROMPT);
+    }catch(error){
+      console.error('[NI-Bot] 이어쓰기 실패:', error);
+    }
+
+    const last = state.history[state.history.length - 1];
+    const succeeded = state.history.length > before && last && last.role === 'assistant' && last.text;
+
+    if(succeeded){
+      clearTruncatedFlag(entryTs);
+      text.innerHTML = '<b>이어서 생성했습니다.</b> 이어지는 내용은 아래 답변을 확인하십시오.';
+      button.remove();
+    }else{
+      button.disabled = false;
+      button.textContent = '이어서 계속';
+    }
+  });
+
+  box.innerHTML = ICONS.warn;
+  box.appendChild(text);
+  box.appendChild(button);
+  return box;
+}
+
 function buildUnverifiedBadge(){
   const badge = document.createElement('div');
   badge.className = 'badge-unverified';
@@ -1879,6 +1970,7 @@ function renderStoredHistory(){
     if(!entry.searched) shell.col.appendChild(buildUnverifiedBadge());
     const sources = buildSourcesNode(entry.sources);
     if(sources) shell.col.appendChild(sources);
+    if(entry.truncated) shell.col.appendChild(buildTruncatedNotice(entry.ts));
   });
 
   scrollToBottom(true);
@@ -1945,10 +2037,10 @@ function renderUsage(){
    ══════════════════════════════════════════════════════════════════════ */
 let activeController = null;
 
-function buildRequestBody(messages){
+function buildRequestBody(messages, maxTokens){
   const body = {
     model: state.model,
-    max_tokens: MAX_TOKENS,
+    max_tokens: maxTokens || MAX_TOKENS,
     stream: true,
     system: buildSystemPrompt(state.mode),
     messages
@@ -2068,6 +2160,7 @@ function createStreamAccumulator(){
   const sources = [];
   let text = '';
   let searchUsed = false;
+  let stopReason = null;
 
   function collectSearchResults(container){
     if(!container || !Array.isArray(container.content)) return;
@@ -2082,6 +2175,8 @@ function createStreamAccumulator(){
     get text(){ return text; },
     get sources(){ return sources.slice(); },
     get searchUsed(){ return searchUsed; },
+    get stopReason(){ return stopReason; },
+    get truncated(){ return stopReason === 'max_tokens'; },
 
     handle(event){
       if(!event || typeof event !== 'object') return null;
@@ -2137,6 +2232,9 @@ function createStreamAccumulator(){
 
         case 'message_delta': {
           if(event.usage) addUsage(0, event.usage.output_tokens);
+          // stop_reason 을 반드시 확인합니다. 'max_tokens' 이면 답변이 문장 중간에서
+          // 잘린 것이므로 사용자에게 알려야 합니다.
+          if(event.delta && event.delta.stop_reason) stopReason = event.delta.stop_reason;
           return { kind:'message_delta' };
         }
 
@@ -2270,12 +2368,24 @@ async function sendMessage(rawText){
   shell.bubble.innerHTML = '<span class="typing" aria-label="응답 생성 중"><i></i><i></i><i></i></span>';
 
   try{
-    const response = await fetch(API_ENDPOINT, {
+    const apiMessages = buildApiMessages();
+    const post = (maxTokens) => fetch(API_ENDPOINT, {
       method: 'POST',
       headers: apiHeaders(),
-      body: JSON.stringify(buildRequestBody(buildApiMessages())),
+      body: JSON.stringify(buildRequestBody(apiMessages, maxTokens)),
       signal: activeController.signal
     });
+
+    let response = await post(MAX_TOKENS);
+
+    // 사용자가 직접 입력한 모델이 큰 max_tokens 를 허용하지 않으면 1회만 낮춰 재시도합니다.
+    if(response.status === 400){
+      const detail = await response.clone().text().catch(() => '');
+      if(/max_tokens/i.test(detail)){
+        console.warn('[NI-Bot] max_tokens ' + MAX_TOKENS + ' 거부 → ' + MAX_TOKENS_FALLBACK + ' 으로 재시도');
+        response = await post(MAX_TOKENS_FALLBACK);
+      }
+    }
 
     if(!response.ok){
       failureMarkdown = await readErrorMessage(response);
@@ -2315,13 +2425,16 @@ async function sendMessage(rawText){
     if(!acc.searchUsed) shell.col.appendChild(buildUnverifiedBadge());
     const sourcesNode = buildSourcesNode(acc.sources);
     if(sourcesNode) shell.col.appendChild(sourcesNode);
+    const assistantTs = Date.now();
+    if(acc.truncated && !aborted) shell.col.appendChild(buildTruncatedNotice(assistantTs));
 
     pushHistory({
       role:'assistant',
       text: finalText,
       sources: acc.sources,
       searched: acc.searchUsed,
-      ts: Date.now()
+      truncated: acc.truncated && !aborted,
+      ts: assistantTs
     });
   }else{
     shell.wrap.remove();
@@ -2388,6 +2501,9 @@ function exportConversation(){
     }
     if(!entry.searched){
       lines.push('> ⚠ 내부지식 기반 · 출처 미검증', '');
+    }
+    if(entry.truncated){
+      lines.push('> ✂ 길이 제한으로 답변이 중단됨', '');
     }
     if(Array.isArray(entry.sources) && entry.sources.length){
       lines.push('**참고 출처**', '');
