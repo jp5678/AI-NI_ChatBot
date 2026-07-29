@@ -1,0 +1,254 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-29T18:41:17.238Z",
+  "currentYear": 2026,
+  "latestCompleteYear": 2025,
+  "comparisonYear": 2020,
+  "sources": [
+    {
+      "name": "PubMed E-utilities",
+      "org": "U.S. National Library of Medicine (NCBI)",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK25501/"
+    },
+    {
+      "name": "ClinicalTrials.gov API v2",
+      "org": "U.S. National Library of Medicine",
+      "url": "https://clinicaltrials.gov/data-api/api"
+    }
+  ],
+  "notes": [
+    "PubMed 건수는 검색 시점의 색인 상태에 따라 달라질 수 있습니다. 색인 지연으로 최근 연도는 이후 증가할 수 있습니다.",
+    "진행 중인 연도(2026)는 부분 집계이므로 추세 계산에서 제외했습니다.",
+    "검색식은 제목·초록(tiab) 기준이며, 주제 정의에 따라 건수가 달라집니다. 절대 수치보다 상대적 추세로 해석하십시오."
+  ],
+  "kpi": {
+    "latestYear": 2025,
+    "latestCount": 128,
+    "baseYear": 2020,
+    "baseCount": 69,
+    "changePct": 85.5,
+    "cagrPct": 13.2,
+    "direction": "증가 우세",
+    "topTopic": "간호 인공지능",
+    "topTopicCount": 1162,
+    "fastestTopic": "간호 인공지능",
+    "fastestTopicChange": 773.7,
+    "trialsTotal": 20322
+  },
+  "trend": {
+    "label": "간호정보학 연간 발행 건수",
+    "query": "(\"nursing informatics\"[tiab] OR (\"health informatics\"[tiab] AND nurs*[tiab]))",
+    "series": [
+      {
+        "year": 2015,
+        "count": 56,
+        "partial": false
+      },
+      {
+        "year": 2016,
+        "count": 87,
+        "partial": false
+      },
+      {
+        "year": 2017,
+        "count": 70,
+        "partial": false
+      },
+      {
+        "year": 2018,
+        "count": 73,
+        "partial": false
+      },
+      {
+        "year": 2019,
+        "count": 68,
+        "partial": false
+      },
+      {
+        "year": 2020,
+        "count": 69,
+        "partial": false
+      },
+      {
+        "year": 2021,
+        "count": 114,
+        "partial": false
+      },
+      {
+        "year": 2022,
+        "count": 100,
+        "partial": false
+      },
+      {
+        "year": 2023,
+        "count": 83,
+        "partial": false
+      },
+      {
+        "year": 2024,
+        "count": 144,
+        "partial": false
+      },
+      {
+        "year": 2025,
+        "count": 128,
+        "partial": false
+      },
+      {
+        "year": 2026,
+        "count": 130,
+        "partial": true
+      }
+    ]
+  },
+  "topics": {
+    "latestYear": 2025,
+    "priorYear": 2020,
+    "rows": [
+      {
+        "name": "간호 인공지능",
+        "area": "05",
+        "query": "(\"machine learning\"[tiab] OR \"artificial intelligence\"[tiab] OR \"deep learning\"[tiab]) AND nurs*[tiab]",
+        "latest": 1162,
+        "prior": 133,
+        "changePct": 773.7,
+        "cagrPct": 54.3
+      },
+      {
+        "name": "상호운용성 (FHIR·HIE)",
+        "area": "02",
+        "query": "(\"FHIR\"[tiab] OR \"health information exchange\"[tiab] OR \"interoperability\"[tiab]) AND (health[tiab] OR nurs*[tiab])",
+        "latest": 869,
+        "prior": 383,
+        "changePct": 126.9,
+        "cagrPct": 17.8
+      },
+      {
+        "name": "전자건강기록 (EHR·EMR)",
+        "area": "03",
+        "query": "(\"electronic health record*\"[tiab] OR \"electronic medical record*\"[tiab]) AND nurs*[tiab]",
+        "latest": 694,
+        "prior": 451,
+        "changePct": 53.9,
+        "cagrPct": 9
+      },
+      {
+        "name": "원격간호 (telehealth)",
+        "area": "07",
+        "query": "(\"telehealth\"[tiab] OR \"telenursing\"[tiab] OR \"telemedicine\"[tiab]) AND nurs*[tiab]",
+        "latest": 550,
+        "prior": 379,
+        "changePct": 45.1,
+        "cagrPct": 7.7
+      },
+      {
+        "name": "생성형 AI·LLM",
+        "area": "06",
+        "query": "(\"large language model*\"[tiab] OR \"ChatGPT\"[tiab] OR \"generative artificial intelligence\"[tiab]) AND nurs*[tiab]",
+        "latest": 279,
+        "prior": 0,
+        "changePct": null,
+        "cagrPct": null
+      },
+      {
+        "name": "환자안전·간호민감지표",
+        "area": "09",
+        "query": "(\"patient safety\"[tiab] OR \"nurse-sensitive\"[tiab]) AND (informatics[tiab] OR \"electronic health record*\"[tiab])",
+        "latest": 251,
+        "prior": 118,
+        "changePct": 112.7,
+        "cagrPct": 16.3
+      },
+      {
+        "name": "표준 간호용어체계",
+        "area": "02",
+        "query": "(\"SNOMED\"[tiab] OR \"ICNP\"[tiab] OR \"LOINC\"[tiab] OR \"standardized nursing terminolog*\"[tiab])",
+        "latest": 221,
+        "prior": 123,
+        "changePct": 79.7,
+        "cagrPct": 12.4
+      },
+      {
+        "name": "임상의사결정지원 (CDSS)",
+        "area": "03",
+        "query": "\"clinical decision support\"[tiab] AND nurs*[tiab]",
+        "latest": 153,
+        "prior": 61,
+        "changePct": 150.8,
+        "cagrPct": 20.2
+      }
+    ]
+  },
+  "llm": {
+    "label": "생성형 AI·LLM 간호 연구",
+    "query": "(\"large language model*\"[tiab] OR \"ChatGPT\"[tiab] OR \"generative artificial intelligence\"[tiab]) AND nurs*[tiab]",
+    "series": [
+      {
+        "year": 2021,
+        "count": 0,
+        "partial": false
+      },
+      {
+        "year": 2022,
+        "count": 0,
+        "partial": false
+      },
+      {
+        "year": 2023,
+        "count": 47,
+        "partial": false
+      },
+      {
+        "year": 2024,
+        "count": 162,
+        "partial": false
+      },
+      {
+        "year": 2025,
+        "count": 279,
+        "partial": false
+      },
+      {
+        "year": 2026,
+        "count": 292,
+        "partial": true
+      }
+    ]
+  },
+  "trials": {
+    "label": "디지털 헬스 임상시험 등록 건수",
+    "rows": [
+      {
+        "name": "디지털치료기기 (DTx)",
+        "area": "07",
+        "term": "digital therapeutic",
+        "total": 12566
+      },
+      {
+        "name": "임상의사결정지원",
+        "area": "03",
+        "term": "clinical decision support system",
+        "total": 3023
+      },
+      {
+        "name": "원격환자모니터링 (RPM)",
+        "area": "07",
+        "term": "remote patient monitoring",
+        "total": 2752
+      },
+      {
+        "name": "웨어러블 기반 중재",
+        "area": "07",
+        "term": "wearable device intervention",
+        "total": 1694
+      },
+      {
+        "name": "원격간호·telehealth",
+        "area": "07",
+        "term": "telehealth AND nursing",
+        "total": 287
+      }
+    ]
+  },
+  "warnings": []
+}

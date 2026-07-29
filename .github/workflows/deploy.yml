@@ -1,21 +1,32 @@
-name: Deploy to GitHub Pages
+name: Collect and Deploy
 
+# 수집과 배포를 한 워크플로에 둡니다.
+# GITHUB_TOKEN 으로 만든 커밋은 다른 워크플로를 트리거하지 않으므로,
+# 수집을 별도 워크플로로 분리하면 데이터 갱신이 배포로 이어지지 않습니다.
 on:
   push:
     branches: [index]
+  schedule:
+    # 매일 21:00 UTC = 06:00 KST
+    - cron: '0 21 * * *'
   workflow_dispatch:
+    inputs:
+      refresh:
+        description: '데이터를 새로 수집할지 여부'
+        type: boolean
+        default: false
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -24,24 +35,59 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 예약 실행이거나 수동으로 refresh 를 켠 경우에만 외부 API 를 조회합니다.
+      - name: Collect dashboard data
+        if: github.event_name == 'schedule' || inputs.refresh
+        run: node scripts/collect.mjs data/nursing-informatics.json
+
+      - name: Commit refreshed data
+        if: github.event_name == 'schedule' || inputs.refresh
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- data/; then
+            echo "데이터 변동 없음 — 커밋 생략"
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          STAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
+          git commit -m "chore: 대시보드 데이터 갱신 ($STAMP)"
+          git push
+
       - name: Build site (ni-bot.html -> index.html)
         run: |
           set -euo pipefail
           test -f ni-bot.html || { echo "ni-bot.html not found"; exit 1; }
-          mkdir -p _site
-          cp ni-bot.html _site/index.html
-          cp ni-bot.html _site/ni-bot.html
-          cp test-c2.html _site/test-c2.html
+          mkdir -p _site/data
+          cp ni-bot.html   _site/index.html
+          cp ni-bot.html   _site/ni-bot.html
+          cp test-c2.html  _site/test-c2.html
+          cp dashboard.html _site/dashboard.html
+          cp data/*.json   _site/data/
           cp AI-NI_ChatBot_사용매뉴얼.docx _site/ 2>/dev/null || true
           echo "--- _site ---"
-          ls -la _site
+          ls -laR _site
 
-      - name: Sanity check built index.html
+      - name: Sanity check
         run: |
           set -euo pipefail
           grep -q "AI-NI_ChatBot" _site/index.html
           grep -q "api.anthropic.com/v1/messages" _site/index.html
           grep -q "anthropic-dangerous-direct-browser-access" _site/index.html
+          grep -q "연구 동향 대시보드" _site/dashboard.html
+          node -e "
+            const d = require('./_site/data/nursing-informatics.json');
+            if (!d.generatedAt) throw new Error('generatedAt 없음');
+            if (!d.trend?.series?.length) throw new Error('추이 데이터 없음');
+            if (!d.topics?.rows?.length) throw new Error('주제 데이터 없음');
+            console.log('data OK — 기준', d.generatedAt, '· 추이', d.trend.series.length, '개 연도');
+          "
           echo "index.html OK ($(wc -c < _site/index.html) bytes)"
 
       - name: Setup Pages

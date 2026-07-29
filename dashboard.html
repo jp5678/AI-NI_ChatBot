@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>연구 동향 대시보드 | AI-NI_ChatBot</title>
+<meta name="description" content="AI융합 간호정보학 연구 동향 대시보드 — PubMed·ClinicalTrials.gov 공개 API 기반 자동 집계">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#065F46; --secondary:#10B981; --accent:#34D399; --gold:#F4C560;
+  --font-title:'Noto Serif KR',serif; --font-body:'Noto Sans KR',sans-serif; --font-code:'JetBrains Mono',monospace;
+  --radius:16px; --transition:180ms cubic-bezier(.4,0,.2,1);
+}
+html[data-theme="dark"]{
+  --bg:#0A0F0D; --surface:rgba(255,255,255,.045); --surface-2:rgba(255,255,255,.075);
+  --border:rgba(52,211,153,.18); --border-strong:rgba(52,211,153,.34);
+  --text:#E8F2EE; --text-muted:#9DB3AB; --text-dim:#8DA39B;
+  --grid:rgba(255,255,255,.09); --code-bg:#0B1411;
+  --shadow:0 8px 32px rgba(0,0,0,.45);
+  --up:#34D399; --down:#FCA5A5;
+  --warn:#F4C560; --warn-bg:rgba(244,197,96,.12); --warn-bd:rgba(244,197,96,.42);
+  --danger:#FCA5A5; --danger-bg:rgba(220,38,38,.13); --danger-bd:rgba(248,113,113,.4);
+}
+html[data-theme="light"]{
+  --bg:#F3F7F5; --surface:rgba(6,95,70,.045); --surface-2:rgba(6,95,70,.085);
+  --border:rgba(6,95,70,.18); --border-strong:rgba(6,95,70,.34);
+  --text:#10231C; --text-muted:#446056; --text-dim:#4A625A;
+  --grid:rgba(6,95,70,.13); --code-bg:#ECF3F0;
+  --shadow:0 6px 24px rgba(6,95,70,.10);
+  --up:#065F46; --down:#B91C1C;
+  --warn:#7D6011; --warn-bg:rgba(244,197,96,.2); --warn-bd:rgba(185,140,20,.45);
+  --danger:#B91C1C; --danger-bg:rgba(220,38,38,.08); --danger-bd:rgba(185,28,28,.35);
+}
+*,*::before,*::after{box-sizing:border-box;}
+[hidden]{display:none!important;}
+body{
+  margin:0;padding:24px 18px 56px;font-family:var(--font-body);font-size:15px;line-height:1.7;
+  color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased;
+}
+html[data-theme="dark"] body{background:radial-gradient(1100px 600px at 12% -12%,rgba(6,95,70,.32),transparent 60%),var(--bg);}
+html[data-theme="light"] body{background:radial-gradient(1000px 540px at 10% -14%,rgba(52,211,153,.18),transparent 60%),var(--bg);}
+.wrap{max-width:1120px;margin:0 auto;}
+h1,h2,h3{font-family:var(--font-title);margin:0;letter-spacing:-.01em;}
+a{color:var(--accent);} html[data-theme="light"] a{color:var(--primary);}
+button{font:inherit;color:inherit;cursor:pointer;border:none;background:none;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
+.visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
+
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  box-shadow:var(--shadow);padding:20px 22px;margin-bottom:16px;
+}
+header.card{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;}
+.brand{display:flex;gap:12px;align-items:center;}
+.logo{
+  width:42px;height:42px;flex:none;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(140deg,var(--secondary),var(--primary));box-shadow:0 6px 18px rgba(6,95,70,.4);
+}
+.logo svg{width:23px;height:23px;}
+header h1{font-size:1.3rem;}
+header .sub{margin:2px 0 0;font-size:.8rem;color:var(--text-muted);}
+.spacer{flex:1;}
+.hdr-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.btn{
+  display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:9px;
+  font-size:.83rem;font-weight:500;border:1px solid var(--border);background:var(--surface-2);
+  color:var(--text-muted);transition:all var(--transition);white-space:nowrap;
+}
+.btn:hover{color:var(--text);border-color:var(--border-strong);}
+.btn svg{width:15px;height:15px;}
+.btn-primary{background:linear-gradient(135deg,var(--secondary),var(--primary));color:#fff;border-color:transparent;}
+.btn-primary:hover{filter:brightness(1.1);color:#fff;}
+
+.stamp{
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+  padding:11px 15px;border-radius:11px;margin-bottom:16px;
+  background:var(--surface-2);border:1px solid var(--border);
+  font-size:.8rem;color:var(--text-muted);
+}
+.stamp b{color:var(--text);font-family:var(--font-code);font-size:.8rem;font-weight:500;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--secondary);flex:none;}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(186px,1fr));gap:12px;margin-bottom:16px;}
+.kpi{
+  padding:15px 17px;border-radius:13px;background:var(--surface);
+  border:1px solid var(--border);box-shadow:var(--shadow);
+}
+.kpi .k{font-size:.73rem;color:var(--text-dim);letter-spacing:.04em;}
+.kpi .v{font-family:var(--font-code);font-size:1.6rem;font-weight:500;margin-top:4px;line-height:1.2;}
+.kpi .n{font-size:.75rem;color:var(--text-muted);margin-top:3px;}
+.kpi .v.sm{font-size:1.05rem;font-family:var(--font-body);font-weight:700;line-height:1.35;}
+.up{color:var(--up);} .down{color:var(--down);}
+
+/* 패널 */
+.panel-head{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:4px;}
+.panel-head h2{font-size:1.05rem;}
+.tag{
+  font-size:.7rem;padding:2px 9px;border-radius:99px;font-weight:500;
+  background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);white-space:nowrap;
+}
+.panel-desc{margin:0 0 14px;font-size:.82rem;color:var(--text-muted);}
+.chart-box{width:100%;overflow-x:auto;}
+svg.chart{display:block;width:100%;height:auto;min-width:520px;}
+.chart-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:.76rem;color:var(--text-muted);}
+.chart-legend i{display:inline-block;width:12px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px;}
+.chart-legend .dash{background:none;border-top:2px dashed var(--gold);height:0;}
+
+details.data{margin-top:12px;}
+details.data > summary{
+  cursor:pointer;font-size:.77rem;color:var(--text-dim);padding:5px 0;list-style:none;
+  display:inline-flex;align-items:center;gap:6px;
+}
+details.data > summary::-webkit-details-marker{display:none;}
+details.data > summary::before{content:"▸";transition:transform var(--transition);}
+details.data[open] > summary::before{transform:rotate(90deg);}
+details.data > summary:hover{color:var(--text);}
+table{border-collapse:collapse;width:100%;font-size:.79rem;margin-top:8px;}
+th,td{padding:7px 11px;text-align:left;border-bottom:1px solid var(--border);}
+th{background:var(--surface-2);font-weight:700;color:var(--accent);white-space:nowrap;}
+html[data-theme="light"] th{color:var(--primary);}
+td.num,th.num{text-align:right;font-family:var(--font-code);font-size:.76rem;}
+tr:last-child td{border-bottom:none;}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;}
+
+code{font-family:var(--font-code);font-size:.79rem;background:var(--surface-2);
+  border:1px solid var(--border);border-radius:5px;padding:1px 6px;color:var(--accent);}
+html[data-theme="light"] code{color:var(--primary);}
+pre.q{
+  margin:6px 0 0;padding:11px 13px;background:var(--code-bg);border:1px solid var(--border);
+  border-radius:9px;overflow-x:auto;font-family:var(--font-code);font-size:.75rem;
+  line-height:1.6;color:var(--text-muted);white-space:pre-wrap;word-break:break-word;
+}
+
+.note{
+  padding:13px 15px;border-radius:11px;font-size:.81rem;line-height:1.72;
+  background:var(--warn-bg);border:1px solid var(--warn-bd);border-left:3px solid var(--warn);
+  color:var(--text-muted);
+}
+.note b{color:var(--warn);}
+.note ul{margin:7px 0 0;padding-left:19px;}
+.note li{margin:3px 0;}
+
+.err{
+  padding:16px 18px;border-radius:11px;
+  background:var(--danger-bg);border:1px solid var(--danger-bd);color:var(--danger);font-size:.86rem;
+}
+.err pre{margin:9px 0 0;font-family:var(--font-code);font-size:.76rem;white-space:pre-wrap;}
+
+.src-list{margin:0;padding-left:19px;font-size:.82rem;color:var(--text-muted);}
+.src-list li{margin:4px 0;}
+
+.loading{display:flex;gap:10px;align-items:center;color:var(--text-muted);font-size:.88rem;padding:26px 0;justify-content:center;}
+.loading svg{width:17px;height:17px;animation:spin 1.1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+footer{text-align:center;font-size:.75rem;color:var(--text-dim);margin-top:26px;line-height:1.7;}
+
+@media (max-width:640px){
+  body{padding:16px 12px 44px;font-size:14.5px;}
+  .card{padding:16px 15px;}
+  header h1{font-size:1.12rem;}
+  .kpi .v{font-size:1.4rem;}
+}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important;animation-duration:.01ms!important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="card">
+  <div class="brand">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2.5 4 6v5.6c0 4.9 3.4 9.1 8 10.4 4.6-1.3 8-5.5 8-10.4V6l-8-3.5Z"/><path d="M12 8.2v6.2M8.9 11.3h6.2"/>
+      </svg>
+    </div>
+    <div>
+      <h1>연구 동향 대시보드</h1>
+      <p class="sub">AI-NI_ChatBot · AI융합 간호정보학</p>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <div class="hdr-actions">
+    <button id="theme" class="btn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z"/></svg>
+      <span id="theme-label">라이트 모드</span>
+    </button>
+    <a class="btn btn-primary" href="./index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4L3 21l1.1-9A8.4 8.4 0 1 1 21 11.5Z"/></svg>
+      챗봇으로
+    </a>
+  </div>
+</header>
+
+<div id="root">
+  <div class="loading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg> 데이터를 불러오는 중입니다…</div>
+</div>
+
+<footer>
+  청암대학교 간호학과 · 정종필 교수 · imjp5678@scjc.ac.kr
+</footer>
+
+</div>
+
+<script>
+"use strict";
+
+const DATA_URL = './data/nursing-informatics.json';
+
+/* ── 유틸 ─────────────────────────────────────────────── */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = n => (typeof n === 'number' && isFinite(n)) ? n.toLocaleString('ko-KR') : '—';
+const signed = n => (typeof n === 'number' && isFinite(n)) ? (n > 0 ? '+' : '') + n.toLocaleString('ko-KR') + '%' : '—';
+
+function formatStamp(iso){
+  const d = new Date(iso);
+  if(isNaN(d)) return iso;
+  const p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+
+/* ── SVG 차트 (외부 라이브러리 없이 직접 그림) ──────────── */
+function lineChart(series, opts){
+  const o = Object.assign({ w:720, h:300, pad:{t:18,r:18,b:34,l:52}, color:'var(--secondary)', area:true }, opts||{});
+  if(!series || series.length === 0) return '<p class="panel-desc">표시할 데이터가 없습니다.</p>';
+
+  const W = o.w, H = o.h, P = o.pad;
+  const iw = W - P.l - P.r, ih = H - P.t - P.b;
+  const max = Math.max(...series.map(p => p.count), 1);
+  const yMax = Math.ceil(max * 1.12 / 10) * 10 || 10;
+
+  const x = i => P.l + (series.length === 1 ? iw/2 : (iw * i) / (series.length - 1));
+  const y = v => P.t + ih - (ih * v) / yMax;
+
+  // 눈금
+  const ticks = 4;
+  let grid = '';
+  for(let i = 0; i <= ticks; i++){
+    const v = Math.round((yMax / ticks) * i);
+    const yy = y(v);
+    grid += `<line x1="${P.l}" y1="${yy}" x2="${W-P.r}" y2="${yy}" stroke="var(--grid)" stroke-width="1"/>`;
+    grid += `<text x="${P.l-9}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--text-dim)" font-family="JetBrains Mono, monospace">${v}</text>`;
+  }
+
+  // x축 라벨 (밀리면 건너뜀)
+  const step = series.length > 9 ? 2 : 1;
+  let xlabels = '';
+  series.forEach((p, i) => {
+    if(i % step !== 0 && i !== series.length - 1) return;
+    xlabels += `<text x="${x(i)}" y="${H-P.b+19}" text-anchor="middle" font-size="11" fill="var(--text-dim)" font-family="JetBrains Mono, monospace">${p.year}</text>`;
+  });
+
+  // 완결 구간 / 진행 중 구간 분리
+  const lastComplete = series.reduce((idx, p, i) => p.partial ? idx : i, 0);
+  const solid = series.slice(0, lastComplete + 1);
+  const dashed = series.slice(lastComplete);
+
+  const pts = arr => arr.map((p) => {
+    const i = series.indexOf(p);
+    return `${x(i).toFixed(1)},${y(p.count).toFixed(1)}`;
+  }).join(' ');
+
+  let area = '';
+  if(o.area && solid.length > 1){
+    const first = x(0), last = x(lastComplete);
+    area = `<polygon points="${first},${y(0)} ${pts(solid)} ${last},${y(0)}" fill="${o.color}" opacity=".13"/>`;
+  }
+
+  const solidLine = solid.length > 1
+    ? `<polyline points="${pts(solid)}" fill="none" stroke="${o.color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>` : '';
+  const dashedLine = dashed.length > 1
+    ? `<polyline points="${pts(dashed)}" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-dasharray="5 4" stroke-linejoin="round"/>` : '';
+
+  const dots = series.map((p, i) => p.partial
+    ? `<circle cx="${x(i)}" cy="${y(p.count)}" r="4.5" fill="var(--bg)" stroke="var(--gold)" stroke-width="2.5"><title>${p.year}년 ${p.count}건 (진행 중)</title></circle>`
+    : `<circle cx="${x(i)}" cy="${y(p.count)}" r="3.6" fill="${o.color}"><title>${p.year}년 ${p.count}건</title></circle>`
+  ).join('');
+
+  const summary = series.map(p => `${p.year}년 ${p.count}건${p.partial ? '(진행 중)' : ''}`).join(', ');
+
+  return `<div class="chart-box"><svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.label || '추이 그래프')}: ${esc(summary)}">
+    ${grid}
+    <line x1="${P.l}" y1="${P.t}" x2="${P.l}" y2="${H-P.b}" stroke="var(--border-strong)" stroke-width="1"/>
+    <line x1="${P.l}" y1="${H-P.b}" x2="${W-P.r}" y2="${H-P.b}" stroke="var(--border-strong)" stroke-width="1"/>
+    ${area}${solidLine}${dashedLine}${dots}${xlabels}
+  </svg></div>`;
+}
+
+function barChart(rows, opts){
+  const o = Object.assign({ w:720, rowH:38, pad:{t:8,r:74,b:8,l:184}, color:'var(--secondary)' }, opts||{});
+  if(!rows || rows.length === 0) return '<p class="panel-desc">표시할 데이터가 없습니다.</p>';
+
+  const W = o.w, P = o.pad;
+  const H = P.t + P.b + rows.length * o.rowH;
+  const iw = W - P.l - P.r;
+  const max = Math.max(...rows.map(r => r.value), 1);
+
+  const bars = rows.map((r, i) => {
+    const yy = P.t + i * o.rowH + 7;
+    const bh = o.rowH - 16;
+    const bw = Math.max((iw * r.value) / max, 2);
+    const label = r.label.length > 20 ? r.label.slice(0, 19) + '…' : r.label;
+    return `
+      <text x="${P.l-11}" y="${yy + bh/2 + 4}" text-anchor="end" font-size="12.5" fill="var(--text-muted)">${esc(label)}<title>${esc(r.label)}</title></text>
+      <rect x="${P.l}" y="${yy}" width="${iw}" height="${bh}" rx="5" fill="var(--surface-2)"/>
+      <rect x="${P.l}" y="${yy}" width="${bw.toFixed(1)}" height="${bh}" rx="5" fill="${r.color || o.color}" opacity=".85"><title>${esc(r.label)}: ${num(r.value)}</title></rect>
+      <text x="${P.l + bw + 9}" y="${yy + bh/2 + 4}" font-size="12" fill="var(--text)" font-family="JetBrains Mono, monospace">${num(r.value)}</text>`;
+  }).join('');
+
+  const summary = rows.map(r => `${r.label} ${r.value}`).join(', ');
+  return `<div class="chart-box"><svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.label || '막대 그래프')}: ${esc(summary)}">${bars}</svg></div>`;
+}
+
+/* ── 표 렌더 ──────────────────────────────────────────── */
+function dataTable(headers, rows, summaryLabel){
+  return `<details class="data"><summary>${esc(summaryLabel)}</summary><div class="table-wrap"><table>
+    <thead><tr>${headers.map(h => `<th${h.num ? ' class="num"' : ''}>${esc(h.label)}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(r => `<tr>${r.map((c, i) => `<td${headers[i].num ? ' class="num"' : ''}>${c}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table></div></details>`;
+}
+
+/* ── 화면 구성 ────────────────────────────────────────── */
+function render(d){
+  const k = d.kpi || {};
+  const partialYear = d.currentYear;
+
+  const kpis = `
+    <div class="kpis">
+      <div class="kpi">
+        <div class="k">${esc(String(k.latestYear ?? ''))}년 발행 건수</div>
+        <div class="v">${num(k.latestCount)}</div>
+        <div class="n">간호정보학 주제 논문</div>
+      </div>
+      <div class="kpi">
+        <div class="k">${esc(String(k.baseYear ?? ''))} → ${esc(String(k.latestYear ?? ''))} 증감</div>
+        <div class="v ${(k.changePct ?? 0) >= 0 ? 'up' : 'down'}">${signed(k.changePct)}</div>
+        <div class="n">연평균 ${signed(k.cagrPct)} · ${esc(k.direction || '—')}</div>
+      </div>
+      <div class="kpi">
+        <div class="k">연구량 최다 주제</div>
+        <div class="v sm">${esc(k.topTopic || '—')}</div>
+        <div class="n">${num(k.topTopicCount)}건 (${esc(String(k.latestYear ?? ''))}년)</div>
+      </div>
+      <div class="kpi">
+        <div class="k">가장 빠른 성장 주제</div>
+        <div class="v sm">${esc(k.fastestTopic || '—')}</div>
+        <div class="n up">${signed(k.fastestTopicChange)} (5년) · 증감률 산출 가능 주제 기준</div>
+      </div>
+      <div class="kpi">
+        <div class="k">디지털 헬스 임상시험</div>
+        <div class="v">${num(k.trialsTotal)}</div>
+        <div class="n">ClinicalTrials.gov 누적 등록</div>
+      </div>
+    </div>`;
+
+  /* 1. 발행 추이 */
+  const trend = d.trend || { series: [] };
+  const trendPanel = `
+    <section class="card">
+      <div class="panel-head"><h2>간호정보학 연간 발행 추이</h2><span class="tag">교과목 영역 10 · 간호연구 정보학</span></div>
+      <p class="panel-desc">PubMed 제목·초록에서 간호정보학 주제를 다룬 논문의 연도별 건수입니다. 점선 구간은 아직 진행 중인 ${partialYear}년으로, 추세 계산에서 제외했습니다.</p>
+      ${lineChart(trend.series, { label:'간호정보학 연간 발행 추이' })}
+      <div class="chart-legend">
+        <span><i style="background:var(--secondary)"></i>완결 연도</span>
+        <span><i class="dash"></i>진행 중 (${partialYear}년)</span>
+      </div>
+      ${dataTable(
+        [{label:'연도'},{label:'건수',num:true},{label:'비고'}],
+        trend.series.map(p => [String(p.year), num(p.count), p.partial ? '진행 중' : '완결']),
+        '원자료 표로 보기'
+      )}
+      <pre class="q">검색식: ${esc(trend.query || '')}</pre>
+    </section>`;
+
+  /* 2. 주제별 */
+  const topics = (d.topics && d.topics.rows) || [];
+  const topicsPanel = `
+    <section class="card">
+      <div class="panel-head"><h2>주제별 연구량과 5년 증감</h2><span class="tag">${esc(String(d.topics?.priorYear ?? ''))} → ${esc(String(d.topics?.latestYear ?? ''))}</span></div>
+      <p class="panel-desc">교과목 세부 영역별 연구 규모를 비교합니다. 막대는 ${esc(String(d.topics?.latestYear ?? ''))}년 발행 건수이며, 표에서 5년 전 대비 증감률을 확인할 수 있습니다.
+      비교 시점의 건수가 0인 주제는 증감률을 계산할 수 없으므로 <strong>신규</strong>로 표기했습니다.</p>
+      ${barChart(topics.map(t => ({ label:t.name, value:t.latest })), { label:'주제별 연구량' })}
+      ${dataTable(
+        [{label:'주제'},{label:'영역'},{label:String(d.topics?.priorYear ?? ''),num:true},{label:String(d.topics?.latestYear ?? ''),num:true},{label:'증감률',num:true},{label:'연평균',num:true}],
+        topics.map(t => {
+          const isNew = t.prior === 0 && t.latest > 0;
+          return [
+            esc(t.name), esc(t.area), num(t.prior), num(t.latest),
+            isNew ? '<span class="up">신규</span>'
+                  : `<span class="${(t.changePct ?? 0) >= 0 ? 'up' : 'down'}">${signed(t.changePct)}</span>`,
+            isNew ? '—' : signed(t.cagrPct)
+          ];
+        }),
+        '주제별 상세 수치 보기'
+      )}
+    </section>`;
+
+  /* 3. LLM */
+  const llm = d.llm || { series: [] };
+  const llmSeries = llm.series || [];
+  const llmFirst = llmSeries.find(p => p.count > 0);
+  const llmLastComplete = llmSeries.filter(p => !p.partial).slice(-1)[0];
+  const llmPanel = `
+    <section class="card">
+      <div class="panel-head"><h2>생성형 AI·대규모언어모델 간호 연구</h2><span class="tag">교과목 영역 06 · 생성형 AI와 LLM</span></div>
+      <p class="panel-desc">
+        ${llmFirst ? `${llmFirst.year}년 처음 등장한 뒤 ${llmLastComplete ? llmLastComplete.year + '년 ' + num(llmLastComplete.count) + '건까지' : ''} 늘었습니다.` : ''}
+        기술 도입이 연구로 반영되는 속도를 보여주는 사례로, 교과목에서 다루는 <strong>정보 시점 명시</strong>의 필요성을 뒷받침합니다.
+      </p>
+      ${lineChart(llmSeries, { label:'생성형 AI·LLM 간호 연구 추이', color:'var(--gold)' })}
+      <div class="chart-legend">
+        <span><i style="background:var(--gold)"></i>완결 연도</span>
+        <span><i class="dash"></i>진행 중 (${partialYear}년)</span>
+      </div>
+      ${dataTable(
+        [{label:'연도'},{label:'건수',num:true},{label:'비고'}],
+        llmSeries.map(p => [String(p.year), num(p.count), p.partial ? '진행 중' : '완결']),
+        '원자료 표로 보기'
+      )}
+      <pre class="q">검색식: ${esc(llm.query || '')}</pre>
+    </section>`;
+
+  /* 4. 임상시험 */
+  const trials = (d.trials && d.trials.rows) || [];
+  const trialsPanel = `
+    <section class="card">
+      <div class="panel-head"><h2>디지털 헬스 임상시험 등록 현황</h2><span class="tag">교과목 영역 07 · 디지털 헬스</span></div>
+      <p class="panel-desc">ClinicalTrials.gov에 등록된 누적 연구 수입니다. 연구 규모가 곧 임상 근거의 성숙도를 뜻하지는 않으므로, 등록 건수와 근거 수준을 구분하여 해석하십시오.</p>
+      ${barChart(trials.map(t => ({ label:t.name, value:t.total, color:'var(--accent)' })), { label:'디지털 헬스 임상시험' })}
+      ${dataTable(
+        [{label:'주제'},{label:'영역'},{label:'등록 건수',num:true},{label:'검색어'}],
+        trials.map(t => [esc(t.name), esc(t.area), num(t.total), `<code>${esc(t.term)}</code>`]),
+        '검색어와 건수 보기'
+      )}
+    </section>`;
+
+  /* 5. 해석 유의사항 · 출처 */
+  const notes = (d.notes || []).map(n => `<li>${esc(n)}</li>`).join('');
+  const sources = (d.sources || []).map(s =>
+    `<li>${esc(s.org)}. <a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.name)}</a></li>`).join('');
+  const warns = (d.warnings || []).length
+    ? `<p style="margin:12px 0 0;font-size:.8rem;color:var(--warn)">수집 경고 ${d.warnings.length}건: ${esc(d.warnings.join(' / '))}</p>` : '';
+
+  const methodPanel = `
+    <section class="card">
+      <div class="panel-head"><h2>해석 시 유의사항과 출처</h2></div>
+      <div class="note">
+        <b>이 수치를 그대로 인용하지 마십시오.</b>
+        <ul>${notes}</ul>
+      </div>
+      <h3 style="font-size:.92rem;margin:18px 0 8px;">데이터 출처</h3>
+      <ul class="src-list">${sources}</ul>
+      <h3 style="font-size:.92rem;margin:18px 0 8px;">수집 방식</h3>
+      <p class="panel-desc" style="margin-bottom:0;">
+        GitHub Actions가 정해진 주기로 위 공개 API를 호출해 결과를 저장소에 커밋하고, 이 화면은 저장된 JSON만 읽습니다.
+        모든 증감률과 연평균 성장률은 수집된 건수에 대한 산술 계산이며 <strong>언어모델 추론을 사용하지 않았습니다.</strong>
+        검색식은 각 패널에 그대로 공개되어 있으므로 PubMed에서 직접 재현하실 수 있습니다.
+      </p>
+      ${warns}
+    </section>`;
+
+  return `
+    <div class="stamp">
+      <span class="dot" aria-hidden="true"></span>
+      데이터 기준 <b>${esc(formatStamp(d.generatedAt))}</b>
+      <span style="color:var(--text-dim)">·</span>
+      완결 연도 <b>${esc(String(d.latestCompleteYear ?? ''))}</b>
+      <span style="color:var(--text-dim)">·</span>
+      비교 기준 <b>${esc(String(d.comparisonYear ?? ''))}</b>
+    </div>
+    ${kpis}${trendPanel}${topicsPanel}${llmPanel}${trialsPanel}${methodPanel}`;
+}
+
+function renderError(message, detail){
+  document.getElementById('root').innerHTML = `
+    <div class="card"><div class="err">
+      <strong>${esc(message)}</strong>
+      ${detail ? `<pre>${esc(detail)}</pre>` : ''}
+      <p style="margin:12px 0 0;font-size:.82rem;line-height:1.7;color:var(--text-muted)">
+        이 페이지는 같은 폴더의 <code>data/nursing-informatics.json</code> 을 읽습니다.
+        파일을 두 번 클릭해 <code>file://</code> 로 여신 경우 브라우저 보안 정책에 막힐 수 있으니,
+        폴더에서 <code>python3 -m http.server 8787</code> 을 실행한 뒤
+        <code>http://localhost:8787/dashboard.html</code> 로 접속하십시오.
+      </p>
+    </div></div>`;
+}
+
+/* ── 테마 ─────────────────────────────────────────────── */
+const THEME_KEY = 'nibot_theme';
+function applyTheme(t){
+  const next = t === 'light' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  document.getElementById('theme-label').textContent = next === 'dark' ? '라이트 모드' : '다크 모드';
+  try{ localStorage.setItem(THEME_KEY, next); }catch(e){ /* 무시 */ }
+}
+document.getElementById('theme').addEventListener('click', () => {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+});
+
+/* ── 시작 ─────────────────────────────────────────────── */
+(async function boot(){
+  let stored = 'dark';
+  try{ stored = localStorage.getItem(THEME_KEY) || 'dark'; }catch(e){ /* 무시 */ }
+  applyTheme(stored);
+
+  try{
+    const response = await fetch(DATA_URL, { cache: 'no-cache' });
+    if(!response.ok) throw new Error('HTTP ' + response.status);
+    const data = await response.json();
+    if(!data || typeof data !== 'object' || !data.generatedAt) throw new Error('데이터 형식이 올바르지 않습니다.');
+    document.getElementById('root').innerHTML = render(data);
+  }catch(error){
+    console.error('[dashboard]', error);
+    renderError('데이터를 불러오지 못했습니다.', error.message);
+  }
+})();
+</script>
+</body>
+</html>
