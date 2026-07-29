@@ -1,0 +1,57 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [index]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build site (ni-bot.html -> index.html)
+        run: |
+          set -euo pipefail
+          test -f ni-bot.html || { echo "ni-bot.html not found"; exit 1; }
+          mkdir -p _site
+          cp ni-bot.html _site/index.html
+          cp ni-bot.html _site/ni-bot.html
+          cp test-c2.html _site/test-c2.html
+          cp AI-NI_ChatBot_사용매뉴얼.docx _site/ 2>/dev/null || true
+          echo "--- _site ---"
+          ls -la _site
+
+      - name: Sanity check built index.html
+        run: |
+          set -euo pipefail
+          grep -q "AI-NI_ChatBot" _site/index.html
+          grep -q "api.anthropic.com/v1/messages" _site/index.html
+          grep -q "anthropic-dangerous-direct-browser-access" _site/index.html
+          echo "index.html OK ($(wc -c < _site/index.html) bytes)"
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
