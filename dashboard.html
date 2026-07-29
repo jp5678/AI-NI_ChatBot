@@ -265,7 +265,13 @@ footer{text-align:center;font-size:.75rem;color:var(--text-dim);margin-top:26px;
 
 const DATA_URL = './data/nursing-informatics.json';
 const INSIGHT_CACHE_KEY = 'nibot_dashboard_insight';
-const INSIGHT_MAX_TOKENS = 4000;
+/* 챗봇 본체와 같은 한도를 씁니다. 4,000 으로는 4개 절 구성 해설이 중간에 잘립니다. */
+const INSIGHT_MAX_TOKENS = 16000;
+const INSIGHT_MAX_TOKENS_FALLBACK = 4096;
+const INSIGHT_CONTINUE_PROMPT =
+  '직전 해설이 길이 제한으로 문장 중간에서 중단되었습니다. 중단된 지점부터 이어서 계속 작성해 주십시오. ' +
+  '이미 작성한 내용을 다시 반복하지 말고, 끊긴 문장부터 자연스럽게 이어 주십시오. ' +
+  '앞서와 동일하게 제시된 수치 외의 통계·논문명·DOI·URL을 새로 만들어 인용하지 마십시오.';
 
 /* ── 유틸 ─────────────────────────────────────────────── */
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -685,7 +691,10 @@ function showInsight(text, meta){
   if(meta){ metaEl.hidden = false; metaEl.textContent = meta; }
 }
 
-async function runInsight(){
+/* 직전 해설의 문맥. 이어쓰기에 사용합니다. */
+let INSIGHT_CTX = { digest:null, text:'', usage:{ input:0, output:0 } };
+
+async function runInsight(isContinue){
   const button = document.getElementById('insight-run');
   const label = document.getElementById('insight-run-label');
 
@@ -707,16 +716,22 @@ async function runInsight(){
   const mode = effectiveMode();
 
   button.disabled = true;
-  label.textContent = '생성 중…';
-  setInsightStatus('<div class="loading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg> 대시보드 수치를 해석하고 있습니다…</div>');
+  label.textContent = isContinue ? '이어서 생성 중…' : '생성 중…';
+  setInsightStatus('<div class="loading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg> ' +
+    (isContinue ? '끊긴 지점부터 이어서 작성하고 있습니다…' : '대시보드 수치를 해석하고 있습니다…') + '</div>');
 
   const body = document.getElementById('insight-body');
   const metaEl = document.getElementById('insight-meta');
-  body.hidden = false; body.innerHTML = '';
+  body.hidden = false;
   metaEl.hidden = true;
 
-  let text = '';
-  let usage = { input: 0, output: 0 };
+  // 이어쓰기면 기존 본문을 유지한 채 뒤에 덧붙입니다.
+  const digest = (isContinue && INSIGHT_CTX.digest) ? INSIGHT_CTX.digest : buildDigest(CURRENT);
+  const prior = isContinue ? INSIGHT_CTX.text : '';
+  if(!isContinue){ body.innerHTML = ''; INSIGHT_CTX = { digest, text:'', usage:{ input:0, output:0 } }; }
+
+  let text = prior;
+  let usage = { input: INSIGHT_CTX.usage.input, output: INSIGHT_CTX.usage.output };
   let stopReason = null;
   let failure = null;
   let frameQueued = false;
@@ -731,7 +746,13 @@ async function runInsight(){
   };
 
   try{
-    const response = await fetch(NB.API_ENDPOINT, {
+    const messages = isContinue && prior
+      ? [{ role:'user', content: digest },
+         { role:'assistant', content: prior },
+         { role:'user', content: INSIGHT_CONTINUE_PROMPT }]
+      : [{ role:'user', content: digest }];
+
+    const post = (maxTokens) => fetch(NB.API_ENDPOINT, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
@@ -741,13 +762,24 @@ async function runInsight(){
       },
       body: JSON.stringify({
         model,
-        max_tokens: INSIGHT_MAX_TOKENS,
+        max_tokens: maxTokens,
         stream: true,
         system: NB.buildSystemPrompt(mode),
-        messages: [{ role: 'user', content: buildDigest(CURRENT) }]
+        messages
         // 검증된 원자료를 해석하는 작업이므로 웹 검색 도구는 붙이지 않습니다.
       })
     });
+
+    let response = await post(INSIGHT_MAX_TOKENS);
+
+    // 모델이 큰 max_tokens 를 허용하지 않으면 1회만 낮춰 재시도합니다.
+    if(response.status === 400){
+      const detail = await response.clone().text().catch(() => '');
+      if(/max_tokens/i.test(detail)){
+        console.warn('[dashboard] max_tokens ' + INSIGHT_MAX_TOKENS + ' 거부 → ' + INSIGHT_MAX_TOKENS_FALLBACK + ' 재시도');
+        response = await post(INSIGHT_MAX_TOKENS_FALLBACK);
+      }
+    }
 
     if(!response.ok){
       const map = { 401:'API 키가 유효하지 않습니다. 키를 다시 확인해 주십시오.',
@@ -809,30 +841,58 @@ async function runInsight(){
   label.textContent = '다시 생성';
 
   const finalText = text.trim();
+  const truncated = stopReason === 'max_tokens';
+
   if(finalText){
-    const truncated = stopReason === 'max_tokens';
     const stamp = formatStamp(new Date().toISOString());
     const meta = `${stamp} 생성 · 모델 ${model} · ${mode === 'instructor' ? '교수자' : '학습자'} 모드 · ` +
                  `토큰 입력 ${num(usage.input)} / 출력 ${num(usage.output)}` +
                  (truncated ? ' · 길이 제한으로 중단됨' : '');
+
+    INSIGHT_CTX.digest = digest;
+    INSIGHT_CTX.text = finalText;
+    INSIGHT_CTX.usage = usage;
+
     showInsight(finalText, meta);
-    insightCacheSet({ generatedAt: CURRENT.generatedAt, mode, model, text: finalText, meta, ts: Date.now() });
-    setInsightStatus(truncated
-      ? '<div class="note" style="margin-top:12px"><b>해설이 길이 제한으로 중단되었습니다.</b> 다시 생성하시면 다른 분량으로 작성될 수 있습니다.</div>'
-      : '');
+    insightCacheSet({ generatedAt: CURRENT.generatedAt, mode, model, text: finalText, meta,
+                      digest, truncated, ts: Date.now() });
+
+    setInsightStatus('');
+    if(truncated) renderContinueNotice();
   }else{
     body.hidden = true;
   }
 
   if(failure){
-    setInsightStatus(`<div class="err" style="margin-top:12px"><strong>해설을 생성하지 못했습니다.</strong><pre>${esc(failure)}</pre></div>`);
+    const errHtml = `<div class="err" style="margin-top:12px"><strong>해설을 생성하지 못했습니다.</strong><pre>${esc(failure)}</pre></div>`;
+    // 이어쓰기 시도가 실패한 경우, 오류만 남기면 재시도할 수 없으므로 버튼을 함께 유지합니다.
+    if(isContinue && INSIGHT_CTX.text) renderContinueNotice(errHtml);
+    else setInsightStatus(errHtml);
   }
+}
+
+/** 길이 제한으로 잘렸을 때 이어쓰기 안내와 버튼을 표시합니다. */
+function renderContinueNotice(prefixHtml){
+  setInsightStatus(
+    (prefixHtml || '') +
+    '<div class="note" style="margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">' +
+    '<span style="flex:1;min-width:190px"><b>해설이 길이 제한으로 중단되었습니다.</b> ' +
+    '아래 버튼을 누르면 끊긴 지점부터 이어서 작성합니다.</span>' +
+    '<button id="insight-continue" class="btn btn-primary" type="button">이어서 계속</button></div>');
+
+  const cont = document.getElementById('insight-continue');
+  if(!cont) return;
+  cont.addEventListener('click', () => {
+    cont.disabled = true;
+    cont.textContent = '생성 중…';
+    runInsight(true);   // 결과에 따라 안내가 다시 렌더링됩니다.
+  });
 }
 
 function initInsight(){
   const button = document.getElementById('insight-run');
   if(!button) return;
-  button.addEventListener('click', runInsight);
+  button.addEventListener('click', () => runInsight(false));
 
   // 같은 데이터에 대한 해설이 이미 있으면 재호출 없이 보여줍니다.
   const mode = effectiveMode();
@@ -840,7 +900,16 @@ function initInsight(){
   if(cached){
     showInsight(cached.text, (cached.meta || '') + ' · 저장된 해설');
     document.getElementById('insight-run-label').textContent = '다시 생성';
-    setInsightStatus('<p class="insight-meta" style="margin-top:10px">동일한 수집 시점의 해설이 저장되어 있어 그대로 표시했습니다. 새로 생성하시려면 위 버튼을 누르십시오.</p>');
+    INSIGHT_CTX = {
+      digest: cached.digest || buildDigest(CURRENT),
+      text: cached.text,
+      usage: { input:0, output:0 }
+    };
+    if(cached.truncated){
+      renderContinueNotice();
+    }else{
+      setInsightStatus('<p class="insight-meta" style="margin-top:10px">동일한 수집 시점의 해설이 저장되어 있어 그대로 표시했습니다. 새로 생성하시려면 위 버튼을 누르십시오.</p>');
+    }
   }
 }
 
