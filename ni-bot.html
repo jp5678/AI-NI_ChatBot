@@ -81,6 +81,8 @@ html[data-theme="light"]{
 }
 
 *,*::before,*::after{box-sizing:border-box;}
+/* .btn 등 클래스의 display 선언이 [hidden] 을 덮어쓰지 않도록 합니다. */
+[hidden]{display:none!important;}
 html,body{height:100%;}
 body{
   margin:0;
@@ -252,6 +254,26 @@ html[data-theme="light"] .mode-opt input:checked + span{color:var(--primary);}
 .btn-danger{background:var(--danger-bg);border-color:var(--danger-bd);color:var(--danger);}
 .btn-danger:hover{background:rgba(220,38,38,.2);}
 .btn-block{width:100%;}
+
+/* 교수자 모드 비밀번호 */
+#pw-block{margin-top:11px;animation:rise .2s ease both;}
+.pw-row{display:flex;gap:8px;align-items:stretch;}
+.pw-field{flex:1;min-width:0;}
+.pw-msg{
+  margin:8px 0 0;padding:8px 12px;border-radius:8px;
+  font-size:.78rem;line-height:1.6;
+  background:var(--danger-bg);border:1px solid var(--danger-bd);color:var(--danger);
+}
+.pw-msg.ok{
+  background:rgba(16,185,129,.13);border-color:rgba(16,185,129,.45);color:var(--accent);
+}
+html[data-theme="light"] .pw-msg.ok{color:var(--primary);}
+.pw-locked{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:.72rem;font-weight:500;padding:3px 10px;border-radius:99px;
+  background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.45);color:var(--accent);
+}
+html[data-theme="light"] .pw-locked{color:var(--primary);}
 
 .setup-actions{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap;}
 .setup-actions .btn-primary{flex:1 1 200px;}
@@ -786,8 +808,22 @@ html[data-theme="light"] .md th{color:var(--primary);}
         </label>
         <label class="mode-opt">
           <input type="radio" name="mode" value="instructor">
-          <span>교수자 모드<small>수업 설계·평가문항 개발</small></span>
+          <span>교수자 모드<small>비밀번호 필요</small></span>
         </label>
+      </div>
+
+      <div id="pw-block" hidden>
+        <div class="pw-row">
+          <div class="pw-field">
+            <label class="visually-hidden" for="instructor-pw">교수자 모드 비밀번호</label>
+            <input id="instructor-pw" class="input" type="password" autocomplete="current-password"
+                   spellcheck="false" placeholder="교수자 모드 비밀번호" aria-describedby="pw-hint">
+          </div>
+          <button id="btn-pw-change" class="btn btn-ghost" type="button" hidden
+                  style="padding:9px 13px;font-size:.8rem;white-space:nowrap;">비밀번호 변경</button>
+        </div>
+        <p class="hint" id="pw-hint">교수자 모드는 담당 교수만 사용할 수 있습니다. 잠금 해제 상태는 이 탭을 닫으면 사라집니다.</p>
+        <p class="pw-msg" id="pw-msg" role="alert" hidden></p>
       </div>
     </div>
 
@@ -1319,7 +1355,27 @@ const STORAGE = Object.freeze({
   HISTORY: 'nibot_history',
   SEARCH:  'nibot_search_enabled',
   PREFILTER: 'nibot_prefilter',
-  THEME:   'nibot_theme'
+  THEME:   'nibot_theme',
+  INSTRUCTOR_PW: 'nibot_instructor_pw',      // 변경된 비밀번호의 PBKDF2 해시
+  INSTRUCTOR_UNLOCK: 'nibot_instructor_unlocked' // sessionStorage 전용
+});
+
+/* ══════════════════════════════════════════════════════════════════════
+   교수자 모드 잠금
+   ──────────────────────────────────────────────────────────────────────
+   본 파일은 브라우저에서만 동작하는 클라이언트 애플리케이션입니다.
+   따라서 이 잠금은 "비밀번호를 모르는 사람이 교수자 모드를 실수로 켜는 것"을
+   막는 용도이며, 개발자도구로 코드를 수정할 수 있는 사람은 우회할 수 있습니다.
+   비밀번호 값 자체는 평문으로 넣지 않고 PBKDF2-SHA256 해시만 보관하여,
+   페이지 소스를 읽더라도 비밀번호를 알아낼 수 없도록 합니다.
+   ══════════════════════════════════════════════════════════════════════ */
+const PBKDF2_ITERATIONS = 250000;
+const PBKDF2_KEY_BITS   = 256;
+
+const DEFAULT_INSTRUCTOR_PW = Object.freeze({
+  salt: '2cc1e5cda99102bda752d3d8c4ab53dc',
+  hash: '48bda98dbc6768e2bfe34aa58525d122e013b9f5d717526d649463a2e3bc10fe',
+  iterations: PBKDF2_ITERATIONS
 });
 
 const TOPICS = Object.freeze([
@@ -1463,6 +1519,103 @@ const validate = Object.freeze({
       truncated: m.truncated === true,
       ts: typeof m.ts === 'number' ? m.ts : Date.now()
     }));
+  }
+});
+
+/* ══════════════════════════════════════════════════════════════════════
+   교수자 모드 잠금 — PBKDF2 검증
+   ══════════════════════════════════════════════════════════════════════ */
+function cryptoAvailable(){
+  return typeof crypto !== 'undefined' && crypto.subtle && typeof crypto.subtle.deriveBits === 'function';
+}
+
+function bytesToHex(buffer){
+  return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function hexToBytes(hex){
+  const clean = String(hex).replace(/[^0-9a-f]/gi, '');
+  const out = new Uint8Array(clean.length / 2);
+  for(let i = 0; i < out.length; i++) out[i] = parseInt(clean.substr(i * 2, 2), 16);
+  return out;
+}
+
+async function derivePasswordHash(password, saltHex, iterations){
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(password), { name:'PBKDF2' }, false, ['deriveBits']
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name:'PBKDF2', salt: hexToBytes(saltHex), iterations, hash:'SHA-256' },
+    key, PBKDF2_KEY_BITS
+  );
+  return bytesToHex(bits);
+}
+
+/** 길이가 같을 때 조기 종료하지 않는 비교 */
+function timingSafeEqual(a, b){
+  if(typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let diff = 0;
+  for(let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+/** 변경된 비밀번호가 있으면 그것을, 없으면 초기 비밀번호 레코드를 반환합니다. */
+function getInstructorPwRecord(){
+  const stored = store.getJSON(STORAGE.INSTRUCTOR_PW, null);
+  if(stored && typeof stored.salt === 'string' && typeof stored.hash === 'string' &&
+     Number.isInteger(stored.iterations) && stored.iterations >= 10000){
+    return stored;
+  }
+  return DEFAULT_INSTRUCTOR_PW;
+}
+
+async function verifyInstructorPassword(password){
+  if(!password) return { ok:false, message:'교수자 모드 비밀번호를 입력해 주십시오.' };
+  if(!cryptoAvailable()){
+    return { ok:false, message:'이 브라우저 환경에서는 비밀번호를 확인할 수 없습니다. https 주소 또는 localhost 로 접속해 주십시오.' };
+  }
+  try{
+    const record = getInstructorPwRecord();
+    const hash = await derivePasswordHash(password, record.salt, record.iterations);
+    return timingSafeEqual(hash, record.hash)
+      ? { ok:true }
+      : { ok:false, message:'비밀번호가 올바르지 않습니다.' };
+  }catch(error){
+    console.error('[NI-Bot] 비밀번호 검증 실패:', error);
+    return { ok:false, message:'비밀번호 확인 중 오류가 발생했습니다. 페이지를 새로고침한 뒤 다시 시도해 주십시오.' };
+  }
+}
+
+async function setInstructorPassword(newPassword){
+  if(!cryptoAvailable()) return { ok:false, message:'이 브라우저 환경에서는 비밀번호를 변경할 수 없습니다.' };
+  const pw = typeof newPassword === 'string' ? newPassword : '';
+  if(pw.length < 8) return { ok:false, message:'새 비밀번호는 8자 이상이어야 합니다.' };
+  if(/\s/.test(pw)) return { ok:false, message:'새 비밀번호에는 공백을 사용할 수 없습니다.' };
+
+  try{
+    const salt = bytesToHex(crypto.getRandomValues(new Uint8Array(16)));
+    const hash = await derivePasswordHash(pw, salt, PBKDF2_ITERATIONS);
+    store.setJSON(STORAGE.INSTRUCTOR_PW, { salt, hash, iterations: PBKDF2_ITERATIONS });
+    return { ok:true };
+  }catch(error){
+    console.error('[NI-Bot] 비밀번호 변경 실패:', error);
+    return { ok:false, message:'비밀번호 변경 중 오류가 발생했습니다.' };
+  }
+}
+
+/* 잠금 해제 상태는 sessionStorage 에만 둡니다. 탭을 닫으면 해제됩니다. */
+const unlockSession = Object.freeze({
+  is(){
+    try{ return sessionStorage.getItem(STORAGE.INSTRUCTOR_UNLOCK) === 'true'; }
+    catch(e){ return false; }
+  },
+  mark(){
+    try{ sessionStorage.setItem(STORAGE.INSTRUCTOR_UNLOCK, 'true'); }
+    catch(e){ console.warn('[NI-Bot] 잠금 해제 상태 저장 실패:', e); }
+  },
+  clear(){
+    try{ sessionStorage.removeItem(STORAGE.INSTRUCTOR_UNLOCK); }
+    catch(e){ /* 무시 */ }
   }
 });
 
@@ -1665,6 +1818,11 @@ const el = Object.freeze({
   modelSelect:  document.getElementById('model-select'),
   modelInput:   document.getElementById('model-input'),
   btnStart:     document.getElementById('btn-start'),
+  pwBlock:      document.getElementById('pw-block'),
+  instructorPw: document.getElementById('instructor-pw'),
+  btnPwChange:  document.getElementById('btn-pw-change'),
+  pwMsg:        document.getElementById('pw-msg'),
+  pwHint:       document.getElementById('pw-hint'),
   btnClearKey:  document.getElementById('btn-clear-key'),
   btnThemeSetup:document.getElementById('btn-theme-setup'),
   themeLabelSetup: document.getElementById('theme-label-setup'),
@@ -2596,9 +2754,15 @@ function openSetup(){
   el.modelSelect.value = matching ? state.model : DEFAULT_MODEL;
   const radio = document.querySelector('input[name="mode"][value="' + state.mode + '"]');
   if(radio) radio.checked = true;
+  el.instructorPw.value = '';
+  setPasswordMessage('');
+  syncPasswordBlock();
   el.setup.hidden = false;
   el.app.hidden = true;
-  setTimeout(() => el.apiKey.focus(), 60);
+  setTimeout(() => {
+    const needsPw = state.mode === 'instructor' && !unlockSession.is() && validate.apiKey(state.apiKey).ok;
+    (needsPw ? el.instructorPw : el.apiKey).focus();
+  }, 60);
 }
 
 function closeSetup(){
@@ -2607,7 +2771,35 @@ function closeSetup(){
   setTimeout(() => el.prompt.focus(), 60);
 }
 
-function applySettingsFromSetup(){
+/* 선택된 사용자 유형에 따라 비밀번호 입력 영역을 보여주고 상태를 갱신합니다. */
+function syncPasswordBlock(){
+  const selected = document.querySelector('input[name="mode"]:checked');
+  const isInstructor = selected && selected.value === 'instructor';
+
+  el.pwBlock.hidden = !isInstructor;
+  if(!isInstructor){ setPasswordMessage(''); return; }
+
+  const unlocked = unlockSession.is();
+  el.instructorPw.hidden = unlocked;
+  el.btnPwChange.hidden = !unlocked;
+
+  if(unlocked){
+    el.pwHint.innerHTML =
+      '<span class="pw-locked">잠금 해제됨</span> 이 탭을 닫으면 다시 비밀번호가 필요합니다.';
+  }else{
+    el.pwHint.textContent =
+      '교수자 모드는 담당 교수만 사용할 수 있습니다. 잠금 해제 상태는 이 탭을 닫으면 사라집니다.';
+  }
+}
+
+function setPasswordMessage(message, kind){
+  if(!message){ el.pwMsg.hidden = true; el.pwMsg.textContent = ''; return; }
+  el.pwMsg.hidden = false;
+  el.pwMsg.textContent = message;
+  el.pwMsg.className = 'pw-msg' + (kind === 'ok' ? ' ok' : '');
+}
+
+async function applySettingsFromSetup(){
   const keyCheck = validate.apiKey(el.apiKey.value);
   if(!keyCheck.ok){ toast(keyCheck.message, 'error'); el.apiKey.focus(); return false; }
 
@@ -2616,6 +2808,28 @@ function applySettingsFromSetup(){
 
   const selected = document.querySelector('input[name="mode"]:checked');
   const mode = validate.mode(selected ? selected.value : 'student');
+
+  // 교수자 모드는 비밀번호 확인을 통과해야만 진입할 수 있습니다.
+  if(mode === 'instructor' && !unlockSession.is()){
+    el.btnStart.disabled = true;
+    setPasswordMessage('비밀번호를 확인하고 있습니다…', 'ok');
+
+    const verdict = await verifyInstructorPassword(el.instructorPw.value);
+
+    el.btnStart.disabled = false;
+    if(!verdict.ok){
+      setPasswordMessage(verdict.message, 'error');
+      el.instructorPw.value = '';
+      el.instructorPw.focus();
+      return false;
+    }
+
+    unlockSession.mark();
+    el.instructorPw.value = '';
+    setPasswordMessage('');
+    syncPasswordBlock();
+  }
+
   const modeChanged = mode !== state.mode;
 
   setState({ apiKey: keyCheck.value, model: modelCheck.value, mode });
@@ -2635,6 +2849,43 @@ function renderHeaderMeta(){
   el.badgeMode.classList.toggle('instructor', instructor);
   el.badgeModel.textContent = state.model;
   el.badgeModel.title = '모델: ' + state.model;
+}
+
+async function changeInstructorPassword(){
+  if(!unlockSession.is()){ setPasswordMessage('먼저 현재 비밀번호로 잠금을 해제해 주십시오.', 'error'); return; }
+
+  const current = window.prompt('현재 교수자 모드 비밀번호를 입력하십시오.');
+  if(current === null) return;
+
+  el.btnPwChange.disabled = true;
+  setPasswordMessage('확인 중입니다…', 'ok');
+
+  const verdict = await verifyInstructorPassword(current);
+  if(!verdict.ok){
+    el.btnPwChange.disabled = false;
+    setPasswordMessage(verdict.message, 'error');
+    return;
+  }
+
+  const next = window.prompt('새 비밀번호를 입력하십시오. (8자 이상, 공백 불가)');
+  if(next === null){ el.btnPwChange.disabled = false; setPasswordMessage(''); return; }
+
+  const confirmed = window.prompt('새 비밀번호를 다시 한 번 입력하십시오.');
+  if(confirmed === null){ el.btnPwChange.disabled = false; setPasswordMessage(''); return; }
+
+  if(next !== confirmed){
+    el.btnPwChange.disabled = false;
+    setPasswordMessage('새 비밀번호가 서로 일치하지 않습니다.', 'error');
+    return;
+  }
+
+  const result = await setInstructorPassword(next);
+  el.btnPwChange.disabled = false;
+
+  if(!result.ok){ setPasswordMessage(result.message, 'error'); return; }
+
+  setPasswordMessage('비밀번호를 변경했습니다. 이 브라우저에만 적용되며, 다른 기기에서는 초기 비밀번호가 유지됩니다.', 'ok');
+  toast('교수자 모드 비밀번호를 변경했습니다.');
 }
 
 function clearApiKey(){
@@ -2674,9 +2925,25 @@ function handleSendClick(){
    Event wiring
    ══════════════════════════════════════════════════════════════════════ */
 function wireEvents(){
-  el.btnStart.addEventListener('click', () => { if(applySettingsFromSetup()) closeSetup(); });
+  el.btnStart.addEventListener('click', async () => {
+    if(await applySettingsFromSetup()) closeSetup();
+  });
   el.btnClearKey.addEventListener('click', clearApiKey);
   el.apiKey.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); el.btnStart.click(); } });
+
+  document.querySelectorAll('input[name="mode"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      setPasswordMessage('');
+      syncPasswordBlock();
+      if(radio.value === 'instructor' && !unlockSession.is()) el.instructorPw.focus();
+    });
+  });
+
+  el.instructorPw.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){ e.preventDefault(); el.btnStart.click(); }
+  });
+
+  el.btnPwChange.addEventListener('click', changeInstructorPassword);
 
   el.modelSelect.addEventListener('change', () => { el.modelInput.value = el.modelSelect.value; });
 
@@ -2720,7 +2987,9 @@ function wireEvents(){
   document.addEventListener('keydown', e => {
     if(e.key === 'Escape'){
       if(el.sidebar.classList.contains('open')){ closeSidebar(); return; }
-      if(!el.setup.hidden && state.apiKey){ closeSetup(); }
+      // 교수자 모드 잠금이 걸린 상태에서는 Esc 로 설정 화면을 빠져나갈 수 없습니다.
+      const locked = state.mode === 'instructor' && !unlockSession.is();
+      if(!el.setup.hidden && state.apiKey && !locked){ closeSetup(); }
     }
   });
 
@@ -2748,10 +3017,18 @@ function boot(){
   autoGrow();
   wireEvents();
 
-  if(validate.apiKey(state.apiKey).ok){
+  // 저장된 모드가 교수자인데 이 탭에서 잠금이 해제되지 않았다면 반드시 비밀번호를 받습니다.
+  const keyReady = validate.apiKey(state.apiKey).ok;
+  const needsUnlock = state.mode === 'instructor' && !unlockSession.is();
+
+  if(keyReady && !needsUnlock){
     closeSetup();
   }else{
     openSetup();
+    if(keyReady && needsUnlock){
+      setPasswordMessage(
+        '교수자 모드로 계속하려면 비밀번호를 입력해 주십시오. 학습자 모드는 비밀번호 없이 이용하실 수 있습니다.', 'ok');
+    }
   }
 }
 
