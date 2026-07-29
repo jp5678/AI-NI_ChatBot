@@ -18,6 +18,12 @@
   --bg-dark:   #0A0F0D;
   --gold:      #F4C560;
 
+  /* 흰 글씨를 얹는 그라디언트 전용 색.
+     --secondary(#10B981) 위의 흰 글씨는 2.54:1 로 WCAG AA 에 미달하므로,
+     버튼·아바타 배경에는 아래의 더 어두운 값을 사용합니다. (밝은 쪽 5.32:1) */
+  --grad-from: #0A7A5A;
+  --grad-to:   #064A37;
+
   --font-title: 'Noto Serif KR', serif;
   --font-body:  'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-code:  'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
@@ -96,14 +102,14 @@ body{
 }
 html[data-theme="dark"] body{
   background:
-    radial-gradient(1100px 620px at 12% -12%, rgba(6,95,70,.34), transparent 62%),
-    radial-gradient(900px 540px at 92% 8%, rgba(16,185,129,.14), transparent 58%),
+    radial-gradient(1100px 620px at 12% -12%, rgba(6,95,70,.16), transparent 62%),
+    radial-gradient(900px 540px at 92% 8%, rgba(16,185,129,.07), transparent 58%),
     var(--bg-dark);
 }
 html[data-theme="light"] body{
   background:
-    radial-gradient(1000px 560px at 10% -14%, rgba(52,211,153,.20), transparent 60%),
-    radial-gradient(820px 480px at 94% 4%, rgba(6,95,70,.09), transparent 58%),
+    radial-gradient(1000px 560px at 10% -14%, rgba(52,211,153,.10), transparent 60%),
+    radial-gradient(820px 480px at 94% 4%, rgba(6,95,70,.05), transparent 58%),
     var(--bg);
 }
 
@@ -160,7 +166,7 @@ html[data-theme="light"] #setup-screen{background:rgba(228,238,234,.82);}
 .setup-brand{display:flex;align-items:center;gap:13px;margin-bottom:6px;}
 .logo-mark{
   width:46px;height:46px;flex:none;border-radius:13px;
-  background:linear-gradient(140deg,var(--secondary),var(--primary));
+  background:linear-gradient(140deg,var(--grad-from),var(--grad-to));
   display:grid;place-items:center;
   box-shadow:0 6px 18px rgba(6,95,70,.42);
 }
@@ -244,7 +250,7 @@ html[data-theme="light"] .mode-opt input:checked + span{color:var(--primary);}
 }
 .btn svg{width:16px;height:16px;flex:none;}
 .btn-primary{
-  background:linear-gradient(135deg,var(--secondary),var(--primary));
+  background:linear-gradient(135deg,var(--grad-from),var(--grad-to));
   color:#fff;box-shadow:0 4px 16px rgba(6,95,70,.4);
 }
 .btn-primary:hover{filter:brightness(1.11);transform:translateY(-1px);}
@@ -392,7 +398,7 @@ html[data-theme="light"] .badge-mode.instructor{color:#7D6011;}
 .topic-btn{
   display:flex;align-items:flex-start;gap:8px;width:100%;
   padding:7px 10px;border-radius:9px;
-  font-size:.795rem;line-height:1.45;color:var(--text-muted);text-align:left;
+  font-size:.795rem;line-height:1.45;color:var(--text);text-align:left;
   border:1px solid transparent;transition:all var(--transition);
 }
 .topic-btn .num{
@@ -437,7 +443,7 @@ html[data-theme="light"] .topic-btn .num{color:var(--primary);}
   display:grid;place-items:center;font-size:.68rem;font-weight:700;
   margin-top:2px;
 }
-.avatar.bot{background:linear-gradient(140deg,var(--secondary),var(--primary));color:#fff;}
+.avatar.bot{background:linear-gradient(140deg,var(--grad-from),var(--grad-to));color:#fff;}
 .avatar.bot svg{width:17px;height:17px;}
 .avatar.user{background:var(--surface-2);border:1px solid var(--border);color:var(--text-muted);}
 
@@ -540,7 +546,7 @@ html[data-theme="light"] .trunc-note b{color:#7A5C0C;}
 .btn-continue{
   flex:none;padding:6px 14px;border-radius:99px;
   font-size:.78rem;font-weight:500;
-  background:linear-gradient(135deg,var(--secondary),var(--primary));color:#fff;
+  background:linear-gradient(135deg,var(--grad-from),var(--grad-to));color:#fff;
   transition:all var(--transition);
 }
 .btn-continue:hover:not(:disabled){filter:brightness(1.12);}
@@ -580,7 +586,7 @@ html[data-theme="light"] .scope-item .n{color:var(--primary);}
 .quick-bar::-webkit-scrollbar{height:5px;}
 .chip{
   flex:none;padding:5px 12px;border-radius:99px;
-  font-size:.77rem;color:var(--text-muted);white-space:nowrap;
+  font-size:.77rem;color:var(--text);white-space:nowrap;
   border:1px solid var(--border);background:var(--surface-2);
   transition:all var(--transition);
 }
@@ -604,7 +610,7 @@ html[data-theme="light"] .chip:hover{color:var(--primary);}
 .send-btn{
   width:38px;height:38px;flex:none;border-radius:10px;
   display:grid;place-items:center;
-  background:linear-gradient(135deg,var(--secondary),var(--primary));color:#fff;
+  background:linear-gradient(135deg,var(--grad-from),var(--grad-to));color:#fff;
   transition:all var(--transition);
 }
 .send-btn:hover:not(:disabled){filter:brightness(1.12);}
@@ -617,7 +623,7 @@ html[data-theme="light"] .chip:hover{color:var(--primary);}
   margin-top:7px;font-size:.71rem;color:var(--text-dim);flex-wrap:wrap;
 }
 .composer-foot kbd{
-  font-family:var(--font-code);font-size:.67rem;
+  font-family:var(--font-code);font-size:.67rem;color:var(--text);
   padding:1px 5px;border-radius:4px;
   background:var(--surface-2);border:1px solid var(--border);
 }
@@ -3037,18 +3043,21 @@ function boot(){
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   테스트 훅
-   test-c2.html 하네스가 동일한 시스템 프롬프트·분류기 계약을 그대로
-   재사용하도록 노출합니다. 본 파일은 클라이언트 애플리케이션이므로
-   페이지 소스로 이미 확인 가능한 값만 노출하며, 새로운 노출은 없습니다.
+   공유 훅
+   test-c2.html(테스트 하네스)과 dashboard.html(AI 해설)이 동일한
+   시스템 프롬프트·분류기 계약·마크다운 렌더러를 그대로 재사용하도록
+   노출합니다. 본 파일은 클라이언트 애플리케이션이므로 페이지 소스로
+   이미 확인 가능한 값만 노출하며, 새로운 노출은 없습니다.
    ══════════════════════════════════════════════════════════════════════ */
-window.__NIBOT_TEST__ = Object.freeze({
+window.__NIBOT_SHARED__ = Object.freeze({
   API_ENDPOINT, API_VERSION, MAX_TOKENS, MAX_SEARCHES, DEFAULT_MODEL,
   SYSTEM_PROMPT, MODE_BLOCKS, buildSystemPrompt,
   CLASSIFIER_PROMPT, CLASSIFIER_MODEL, CLASSIFIER_MAX_TOKENS, parseClassifierJson,
   REFUSAL_HEAD, REFUSAL_TAIL, REFUSAL_CLINICAL, buildLocalRefusal,
-  TOPICS
+  TOPICS, STORAGE, renderMarkdown, escapeHtml, validate
 });
+/* 이전 이름 호환 */
+window.__NIBOT_TEST__ = window.__NIBOT_SHARED__;
 
 if(document.readyState === 'loading'){
   document.addEventListener('DOMContentLoaded', boot);

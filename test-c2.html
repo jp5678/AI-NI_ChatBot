@@ -13,6 +13,10 @@
   --gold:#F4C560;
   --font-title:'Noto Serif KR',serif; --font-body:'Noto Sans KR',sans-serif;
   --font-code:'JetBrains Mono',monospace;
+  /* 흰 글씨를 얹는 그라디언트 전용 색.
+     --secondary(#10B981) 위의 흰 글씨는 2.54:1 로 WCAG AA 에 미달하므로,
+     버튼·로고 배경에는 아래의 더 어두운 값을 사용합니다. (밝은 쪽 5.32:1) */
+  --grad-from:#0A7A5A; --grad-to:#064A37;
 }
 html[data-theme="dark"]{
   --bg:#0A0F0D; --surface:rgba(255,255,255,.045); --surface-2:rgba(255,255,255,.075);
@@ -29,7 +33,7 @@ html[data-theme="light"]{
   --text:#10231C; --text-muted:#446056; --text-dim:#4A625A;
   --pass:#065F46; --pass-bg:rgba(16,185,129,.14);
   --fail:#B91C1C; --fail-bg:rgba(220,38,38,.08); --fail-bd:rgba(185,28,28,.35);
-  --warn:#7D6011; --warn-bg:rgba(244,197,96,.2); --warn-bd:rgba(185,140,20,.45);
+  --warn:#6E530E; --warn-bg:rgba(244,197,96,.2); --warn-bd:rgba(185,140,20,.45);
   --code-bg:#ECF3F0; --shadow:0 6px 24px rgba(6,95,70,.10);
 }
 *,*::before,*::after{box-sizing:border-box;}
@@ -37,8 +41,8 @@ body{
   margin:0;padding:26px 18px 60px;font-family:var(--font-body);font-size:15px;line-height:1.7;
   color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased;
 }
-html[data-theme="dark"] body{background:radial-gradient(1000px 560px at 12% -12%,rgba(6,95,70,.3),transparent 60%),var(--bg);}
-html[data-theme="light"] body{background:radial-gradient(900px 500px at 10% -14%,rgba(52,211,153,.18),transparent 60%),var(--bg);}
+html[data-theme="dark"] body{background:radial-gradient(1000px 560px at 12% -12%,rgba(6,95,70,.16),transparent 60%),var(--bg);}
+html[data-theme="light"] body{background:radial-gradient(900px 500px at 10% -14%,rgba(52,211,153,.09),transparent 60%),var(--bg);}
 .wrap{max-width:1080px;margin:0 auto;}
 h1,h2,h3{font-family:var(--font-title);margin:0;}
 a{color:var(--accent);} html[data-theme="light"] a{color:var(--primary);}
@@ -69,7 +73,7 @@ label.fl{display:block;font-size:.75rem;font-weight:700;letter-spacing:.05em;tex
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .row{display:flex;gap:11px;align-items:center;flex-wrap:wrap;margin-top:16px;}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 17px;border-radius:9px;font-size:.9rem;font-weight:500;border:1px solid transparent;transition:all .18s;}
-.btn-primary{background:linear-gradient(135deg,var(--secondary),var(--primary));color:#fff;}
+.btn-primary{background:linear-gradient(135deg,var(--grad-from),var(--grad-to));color:#fff;}
 .btn-primary:hover:not(:disabled){filter:brightness(1.1);}
 .btn-primary:disabled{opacity:.45;cursor:not-allowed;}
 .btn-ghost{background:var(--surface-2);border-color:var(--border);color:var(--text-muted);}
@@ -210,7 +214,8 @@ function loadHost(){
     const frame = document.getElementById('host');
     const grab = () => {
       try{
-        const hook = frame.contentWindow && frame.contentWindow.__NIBOT_TEST__;
+        const hook = frame.contentWindow &&
+          (frame.contentWindow.__NIBOT_SHARED__ || frame.contentWindow.__NIBOT_TEST__);
         if(!hook) return reject(new Error('ni-bot.html 의 테스트 훅을 찾지 못했습니다.'));
         resolve(hook);
       }catch(e){

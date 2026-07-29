@@ -13,6 +13,10 @@
   --primary:#065F46; --secondary:#10B981; --accent:#34D399; --gold:#F4C560;
   --font-title:'Noto Serif KR',serif; --font-body:'Noto Sans KR',sans-serif; --font-code:'JetBrains Mono',monospace;
   --radius:16px; --transition:180ms cubic-bezier(.4,0,.2,1);
+  /* 흰 글씨를 얹는 그라디언트 전용 색.
+     --secondary(#10B981) 위의 흰 글씨는 2.54:1 로 WCAG AA 에 미달하므로,
+     버튼·로고 배경에는 아래의 더 어두운 값을 사용합니다. (밝은 쪽 5.32:1) */
+  --grad-from:#0A7A5A; --grad-to:#064A37;
 }
 html[data-theme="dark"]{
   --bg:#0A0F0D; --surface:rgba(255,255,255,.045); --surface-2:rgba(255,255,255,.075);
@@ -31,7 +35,8 @@ html[data-theme="light"]{
   --grid:rgba(6,95,70,.13); --code-bg:#ECF3F0;
   --shadow:0 6px 24px rgba(6,95,70,.10);
   --up:#065F46; --down:#B91C1C;
-  --warn:#7D6011; --warn-bg:rgba(244,197,96,.2); --warn-bd:rgba(185,140,20,.45);
+  /* 금색 계열은 밝은 배경 대비가 낮아 텍스트용으로는 더 어둡게 씁니다 (AI 배지 5.31:1) */
+  --warn:#6E530E; --warn-bg:rgba(244,197,96,.2); --warn-bd:rgba(185,140,20,.45);
   --danger:#B91C1C; --danger-bg:rgba(220,38,38,.08); --danger-bd:rgba(185,28,28,.35);
 }
 *,*::before,*::after{box-sizing:border-box;}
@@ -40,11 +45,14 @@ body{
   margin:0;padding:24px 18px 56px;font-family:var(--font-body);font-size:15px;line-height:1.7;
   color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased;
 }
-html[data-theme="dark"] body{background:radial-gradient(1100px 600px at 12% -12%,rgba(6,95,70,.32),transparent 60%),var(--bg);}
-html[data-theme="light"] body{background:radial-gradient(1000px 540px at 10% -14%,rgba(52,211,153,.18),transparent 60%),var(--bg);}
+html[data-theme="dark"] body{background:radial-gradient(1100px 600px at 12% -12%,rgba(6,95,70,.16),transparent 60%),var(--bg);}
+html[data-theme="light"] body{background:radial-gradient(1000px 540px at 10% -14%,rgba(52,211,153,.09),transparent 60%),var(--bg);}
 .wrap{max-width:1120px;margin:0 auto;}
 h1,h2,h3{font-family:var(--font-title);margin:0;letter-spacing:-.01em;}
 a{color:var(--accent);} html[data-theme="light"] a{color:var(--primary);}
+/* 링크 규칙이 버튼 글자색을 덮어쓰지 않도록 특이도를 올립니다 (라이트 모드 1.34:1 방지) */
+html[data-theme="light"] a.btn{color:var(--text);}
+html[data-theme="light"] a.btn-primary,a.btn-primary{color:#fff;}
 button{font:inherit;color:inherit;cursor:pointer;border:none;background:none;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
 .visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
@@ -58,7 +66,7 @@ header.card{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;}
 .brand{display:flex;gap:12px;align-items:center;}
 .logo{
   width:42px;height:42px;flex:none;border-radius:12px;display:grid;place-items:center;
-  background:linear-gradient(140deg,var(--secondary),var(--primary));box-shadow:0 6px 18px rgba(6,95,70,.4);
+  background:linear-gradient(140deg,var(--grad-from),var(--grad-to));box-shadow:0 6px 18px rgba(6,95,70,.4);
 }
 .logo svg{width:23px;height:23px;}
 header h1{font-size:1.3rem;}
@@ -68,11 +76,11 @@ header .sub{margin:2px 0 0;font-size:.8rem;color:var(--text-muted);}
 .btn{
   display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:9px;
   font-size:.83rem;font-weight:500;border:1px solid var(--border);background:var(--surface-2);
-  color:var(--text-muted);transition:all var(--transition);white-space:nowrap;
+  color:var(--text);transition:all var(--transition);white-space:nowrap;
 }
 .btn:hover{color:var(--text);border-color:var(--border-strong);}
 .btn svg{width:15px;height:15px;}
-.btn-primary{background:linear-gradient(135deg,var(--secondary),var(--primary));color:#fff;border-color:transparent;}
+.btn-primary{background:linear-gradient(135deg,var(--grad-from),var(--grad-to));color:#fff;border-color:transparent;}
 .btn-primary:hover{filter:brightness(1.1);color:#fff;}
 
 .stamp{
@@ -90,7 +98,7 @@ header .sub{margin:2px 0 0;font-size:.8rem;color:var(--text-muted);}
   padding:15px 17px;border-radius:13px;background:var(--surface);
   border:1px solid var(--border);box-shadow:var(--shadow);
 }
-.kpi .k{font-size:.73rem;color:var(--text-dim);letter-spacing:.04em;}
+.kpi .k{font-size:.73rem;color:var(--text-muted);letter-spacing:.04em;}
 .kpi .v{font-family:var(--font-code);font-size:1.6rem;font-weight:500;margin-top:4px;line-height:1.2;}
 .kpi .n{font-size:.75rem;color:var(--text-muted);margin-top:3px;}
 .kpi .v.sm{font-size:1.05rem;font-family:var(--font-body);font-weight:700;line-height:1.35;}
@@ -101,7 +109,7 @@ header .sub{margin:2px 0 0;font-size:.8rem;color:var(--text-muted);}
 .panel-head h2{font-size:1.05rem;}
 .tag{
   font-size:.7rem;padding:2px 9px;border-radius:99px;font-weight:500;
-  background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);white-space:nowrap;
+  background:var(--surface-2);border:1px solid var(--border);color:var(--text);white-space:nowrap;
 }
 .panel-desc{margin:0 0 14px;font-size:.82rem;color:var(--text-muted);}
 .chart-box{width:100%;overflow-x:auto;}
@@ -112,7 +120,7 @@ svg.chart{display:block;width:100%;height:auto;min-width:520px;}
 
 details.data{margin-top:12px;}
 details.data > summary{
-  cursor:pointer;font-size:.77rem;color:var(--text-dim);padding:5px 0;list-style:none;
+  cursor:pointer;font-size:.77rem;color:var(--text-muted);padding:5px 0;list-style:none;
   display:inline-flex;align-items:center;gap:6px;
 }
 details.data > summary::-webkit-details-marker{display:none;}
@@ -128,7 +136,7 @@ tr:last-child td{border-bottom:none;}
 .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;}
 
 code{font-family:var(--font-code);font-size:.79rem;background:var(--surface-2);
-  border:1px solid var(--border);border-radius:5px;padding:1px 6px;color:var(--accent);}
+  border:1px solid var(--border);border-radius:5px;padding:1px 6px;color:var(--text);}
 html[data-theme="light"] code{color:var(--primary);}
 pre.q{
   margin:6px 0 0;padding:11px 13px;background:var(--code-bg);border:1px solid var(--border);
@@ -139,7 +147,7 @@ pre.q{
 .note{
   padding:13px 15px;border-radius:11px;font-size:.81rem;line-height:1.72;
   background:var(--warn-bg);border:1px solid var(--warn-bd);border-left:3px solid var(--warn);
-  color:var(--text-muted);
+  color:var(--text);
 }
 .note b{color:var(--warn);}
 .note ul{margin:7px 0 0;padding-left:19px;}
@@ -153,6 +161,48 @@ pre.q{
 
 .src-list{margin:0;padding-left:19px;font-size:.82rem;color:var(--text-muted);}
 .src-list li{margin:4px 0;}
+
+/* AI 해설 */
+.insight-head{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px;}
+.insight-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto;}
+.badge-ai{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 11px;border-radius:99px;font-size:.72rem;font-weight:500;
+  background:var(--warn-bg);border:1px solid var(--warn-bd);color:var(--warn);
+}
+.badge-ai svg{width:13px;height:13px;}
+.insight-meta{font-size:.74rem;color:var(--text-muted);margin-top:10px;}
+.insight-body{
+  margin-top:14px;padding:16px 18px;border-radius:12px;
+  background:var(--surface-2);border:1px solid var(--border);
+  font-size:.87rem;line-height:1.78;
+}
+.insight-body > *:first-child{margin-top:0;}
+.insight-body > *:last-child{margin-bottom:0;}
+.insight-body h1,.insight-body h2,.insight-body h3,.insight-body h4{
+  font-family:var(--font-title);margin:1.2em 0 .5em;line-height:1.4;}
+.insight-body h1{font-size:1.1rem;} .insight-body h2{font-size:1.02rem;color:var(--accent);}
+html[data-theme="light"] .insight-body h2{color:var(--primary);}
+.insight-body h3{font-size:.95rem;} .insight-body h4{font-size:.89rem;color:var(--text-muted);}
+.insight-body p{margin:.6em 0;}
+.insight-body ul,.insight-body ol{margin:.5em 0;padding-left:1.35em;}
+.insight-body li{margin:.22em 0;}
+.insight-body li::marker{color:var(--secondary);}
+html[data-theme="light"] .insight-body li::marker{color:var(--primary);}
+.insight-body strong{font-weight:700;color:var(--text);}
+.insight-body blockquote{margin:.8em 0;padding:.35em 0 .35em 13px;border-left:3px solid var(--secondary);color:var(--text-muted);}
+.insight-body code.inline-code{font-family:var(--font-code);font-size:.85em;padding:1px 6px;border-radius:5px;
+  background:var(--surface);border:1px solid var(--border);color:var(--text);}
+html[data-theme="light"] .insight-body code.inline-code{color:var(--primary);}
+.insight-body pre{margin:.8em 0;padding:12px 14px;background:var(--code-bg);border:1px solid var(--border);
+  border-radius:9px;overflow-x:auto;}
+.insight-body pre code{font-family:var(--font-code);font-size:.8rem;line-height:1.65;}
+.insight-body .table-wrap{overflow-x:auto;margin:.8em 0;border:1px solid var(--border);border-radius:9px;}
+.insight-body table{margin:0;}
+.insight-body hr{border:none;border-top:1px solid var(--border);margin:1.1em 0;}
+.caret{display:inline-block;width:2px;height:1.05em;background:var(--accent);vertical-align:-2px;
+  margin-left:2px;animation:blink 1s steps(2,start) infinite;}
+@keyframes blink{50%{opacity:0;}}
 
 .loading{display:flex;gap:10px;align-items:center;color:var(--text-muted);font-size:.88rem;padding:26px 0;justify-content:center;}
 .loading svg{width:17px;height:17px;animation:spin 1.1s linear infinite;}
@@ -207,10 +257,15 @@ footer{text-align:center;font-size:.75rem;color:var(--text-dim);margin-top:26px;
 
 </div>
 
+<!-- 챗봇의 시스템 프롬프트·마크다운 렌더러를 그대로 재사용하기 위한 숨김 프레임 -->
+<iframe id="host" src="ni-bot.html" style="display:none" title="shared prompt source" aria-hidden="true"></iframe>
+
 <script>
 "use strict";
 
 const DATA_URL = './data/nursing-informatics.json';
+const INSIGHT_CACHE_KEY = 'nibot_dashboard_insight';
+const INSIGHT_MAX_TOKENS = 4000;
 
 /* ── 유틸 ─────────────────────────────────────────────── */
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -244,7 +299,7 @@ function lineChart(series, opts){
     const v = Math.round((yMax / ticks) * i);
     const yy = y(v);
     grid += `<line x1="${P.l}" y1="${yy}" x2="${W-P.r}" y2="${yy}" stroke="var(--grid)" stroke-width="1"/>`;
-    grid += `<text x="${P.l-9}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--text-dim)" font-family="JetBrains Mono, monospace">${v}</text>`;
+    grid += `<text x="${P.l-9}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--text-muted)" font-family="JetBrains Mono, monospace">${v}</text>`;
   }
 
   // x축 라벨 (밀리면 건너뜀)
@@ -252,7 +307,7 @@ function lineChart(series, opts){
   let xlabels = '';
   series.forEach((p, i) => {
     if(i % step !== 0 && i !== series.length - 1) return;
-    xlabels += `<text x="${x(i)}" y="${H-P.b+19}" text-anchor="middle" font-size="11" fill="var(--text-dim)" font-family="JetBrains Mono, monospace">${p.year}</text>`;
+    xlabels += `<text x="${x(i)}" y="${H-P.b+19}" text-anchor="middle" font-size="11" fill="var(--text-muted)" font-family="JetBrains Mono, monospace">${p.year}</text>`;
   });
 
   // 완결 구간 / 진행 중 구간 분리
@@ -464,6 +519,32 @@ function render(d){
       ${warns}
     </section>`;
 
+  /* 6. AI 해설 */
+  const insightPanel = `
+    <section class="card" id="insight-panel">
+      <div class="insight-head">
+        <h2 style="font-size:1.05rem;">AI 해설</h2>
+        <span class="badge-ai">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+          수치는 공식 API 원본 · 해석은 AI 생성
+        </span>
+        <div class="insight-actions">
+          <button id="insight-run" class="btn btn-primary" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>
+            <span id="insight-run-label">해설 생성</span>
+          </button>
+        </div>
+      </div>
+      <p class="panel-desc" style="margin-bottom:0;">
+        위 대시보드의 실측 수치를 챗봇에 그대로 전달해 해석을 받습니다.
+        <strong>새로운 통계를 만들어 내지 않도록</strong> 제시된 수치만 해석하라고 지시하며, 웹 검색은 사용하지 않습니다.
+        챗봇에 입력해 두신 API 키를 그대로 사용하므로 호출 비용이 발생합니다.
+      </p>
+      <div id="insight-status"></div>
+      <div id="insight-body" class="insight-body" hidden></div>
+      <div id="insight-meta" class="insight-meta" hidden></div>
+    </section>`;
+
   return `
     <div class="stamp">
       <span class="dot" aria-hidden="true"></span>
@@ -473,7 +554,7 @@ function render(d){
       <span style="color:var(--text-dim)">·</span>
       비교 기준 <b>${esc(String(d.comparisonYear ?? ''))}</b>
     </div>
-    ${kpis}${trendPanel}${topicsPanel}${llmPanel}${trialsPanel}${methodPanel}`;
+    ${kpis}${trendPanel}${topicsPanel}${llmPanel}${trialsPanel}${insightPanel}${methodPanel}`;
 }
 
 function renderError(message, detail){
@@ -488,6 +569,279 @@ function renderError(message, detail){
         <code>http://localhost:8787/dashboard.html</code> 로 접속하십시오.
       </p>
     </div></div>`;
+}
+
+/* ══════════════════════════════════════════════════════════
+   AI 해설
+   ══════════════════════════════════════════════════════════ */
+let NB = null;          // ni-bot.html 이 노출한 공유 훅
+let CURRENT = null;     // 현재 표시 중인 대시보드 데이터
+
+function loadSharedHook(){
+  return new Promise((resolve) => {
+    const frame = document.getElementById('host');
+    const grab = () => {
+      try{
+        resolve((frame.contentWindow && (frame.contentWindow.__NIBOT_SHARED__ || frame.contentWindow.__NIBOT_TEST__)) || null);
+      }catch(e){ resolve(null); }
+    };
+    if(frame.contentDocument && frame.contentDocument.readyState === 'complete') grab();
+    else frame.addEventListener('load', grab, { once:true });
+    setTimeout(() => resolve(null), 8000);
+  });
+}
+
+function readStore(key){
+  try{ return localStorage.getItem(key); }catch(e){ return null; }
+}
+
+/** 교수자 모드는 이 탭에서 잠금이 해제된 경우에만 적용합니다. */
+function effectiveMode(){
+  const stored = readStore(NB?.STORAGE?.MODE || 'nibot_mode');
+  if(stored !== 'instructor') return 'student';
+  try{
+    return sessionStorage.getItem(NB?.STORAGE?.INSTRUCTOR_UNLOCK || 'nibot_instructor_unlocked') === 'true'
+      ? 'instructor' : 'student';
+  }catch(e){ return 'student'; }
+}
+
+/** 모델에 넘길 데이터 요약. 원본 수치를 그대로 옮깁니다. */
+function buildDigest(d){
+  const L = [];
+  L.push('아래는 AI-NI_ChatBot 연구 동향 대시보드가 공개 API에서 자동 수집한 실측 데이터입니다.');
+  L.push('');
+  L.push('【데이터 출처와 수집 조건】');
+  (d.sources || []).forEach(s => L.push(`· ${s.org}. ${s.name}. ${s.url}`));
+  L.push(`· 수집 시각: ${d.generatedAt}`);
+  L.push(`· 완결 연도: ${d.latestCompleteYear} / 비교 기준 연도: ${d.comparisonYear} / 진행 중 연도: ${d.currentYear}`);
+  L.push('');
+
+  const t = d.trend || {};
+  L.push('【1. 간호정보학 연간 발행 건수 (PubMed)】');
+  L.push(`검색식: ${t.query || ''}`);
+  (t.series || []).forEach(p => L.push(`${p.year}년: ${p.count}건${p.partial ? ' (진행 중, 부분 집계)' : ''}`));
+  L.push('');
+
+  const tp = d.topics || {};
+  L.push(`【2. 주제별 연구량 (${tp.priorYear} → ${tp.latestYear}, PubMed)】`);
+  (tp.rows || []).forEach(r => {
+    const chg = (r.prior === 0 && r.latest > 0) ? '신규 등장 (비교 시점 0건)'
+              : (r.changePct === null ? '증감률 산출 불가' : `${r.changePct > 0 ? '+' : ''}${r.changePct}%`);
+    L.push(`· ${r.name} [교과목 영역 ${r.area}]: ${r.prior}건 → ${r.latest}건 (${chg})`);
+  });
+  L.push('');
+
+  const llm = d.llm || {};
+  L.push('【3. 생성형 AI·대규모언어모델 간호 연구 (PubMed)】');
+  L.push(`검색식: ${llm.query || ''}`);
+  (llm.series || []).forEach(p => L.push(`${p.year}년: ${p.count}건${p.partial ? ' (진행 중, 부분 집계)' : ''}`));
+  L.push('');
+
+  const tr = d.trials || {};
+  L.push('【4. 디지털 헬스 임상시험 누적 등록 건수 (ClinicalTrials.gov)】');
+  (tr.rows || []).forEach(r => L.push(`· ${r.name} [교과목 영역 ${r.area}]: ${r.total}건 (검색어 "${r.term}")`));
+  L.push('');
+
+  L.push('【수집 측이 이미 명시한 해석상 제약】');
+  (d.notes || []).forEach(n => L.push(`· ${n}`));
+  L.push('');
+
+  L.push('【요청】');
+  L.push('위 수치는 공식 API에서 직접 수집한 검증된 원자료입니다. 별도의 웹 검색 없이 제시된 수치만으로 해석해 주십시오.');
+  L.push('다음을 포함하여 분석해 주십시오.');
+  L.push('1. 전체 추세 요약 — 무엇이 늘고 무엇이 정체되어 있는가');
+  L.push('2. 주목할 변화와 그 배경에 대한 해석');
+  L.push('3. 이 데이터를 해석할 때 반드시 주의할 점 — 검색식 정의에 따른 편향, 색인 지연, 임상시험 등록 건수와 근거 수준의 차이');
+  L.push('4. 간호정보학 교육·연구에 주는 시사점');
+  L.push('');
+  L.push('제약: 위에 제시되지 않은 통계 수치·논문명·DOI·URL을 새로 만들어 인용하지 마십시오.');
+  L.push('출처는 위에 명시된 두 개 API 외에 추가하지 마십시오. 수치를 재계산할 때는 위 값만 사용하십시오.');
+  return L.join('\n');
+}
+
+function insightCacheGet(generatedAt, mode){
+  try{
+    const raw = localStorage.getItem(INSIGHT_CACHE_KEY);
+    if(!raw) return null;
+    const c = JSON.parse(raw);
+    return (c && c.generatedAt === generatedAt && c.mode === mode && c.text) ? c : null;
+  }catch(e){ return null; }
+}
+
+function insightCacheSet(entry){
+  try{ localStorage.setItem(INSIGHT_CACHE_KEY, JSON.stringify(entry)); }
+  catch(e){ console.warn('[dashboard] 해설 캐시 저장 실패:', e); }
+}
+
+function setInsightStatus(html){
+  document.getElementById('insight-status').innerHTML = html || '';
+}
+
+function showInsight(text, meta){
+  const body = document.getElementById('insight-body');
+  const metaEl = document.getElementById('insight-meta');
+  body.hidden = false;
+  body.innerHTML = NB && NB.renderMarkdown ? NB.renderMarkdown(text) : esc(text).replace(/\n/g, '<br>');
+  if(meta){ metaEl.hidden = false; metaEl.textContent = meta; }
+}
+
+async function runInsight(){
+  const button = document.getElementById('insight-run');
+  const label = document.getElementById('insight-run-label');
+
+  if(!NB){
+    setInsightStatus('<div class="note" style="margin-top:12px">챗봇 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주십시오.</div>');
+    return;
+  }
+
+  const apiKey = (readStore(NB.STORAGE.KEY) || '').trim();
+  if(!NB.validate.apiKey(apiKey).ok){
+    setInsightStatus(
+      '<div class="note" style="margin-top:12px"><b>API 키가 필요합니다.</b> ' +
+      '<a href="./index.html">챗봇 화면</a>에서 Anthropic API 키를 입력하신 뒤 이 페이지로 돌아오십시오. ' +
+      '키는 이 브라우저에만 저장되며 대시보드가 별도로 보관하지 않습니다.</div>');
+    return;
+  }
+
+  const model = (readStore(NB.STORAGE.MODEL) || NB.DEFAULT_MODEL).trim();
+  const mode = effectiveMode();
+
+  button.disabled = true;
+  label.textContent = '생성 중…';
+  setInsightStatus('<div class="loading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg> 대시보드 수치를 해석하고 있습니다…</div>');
+
+  const body = document.getElementById('insight-body');
+  const metaEl = document.getElementById('insight-meta');
+  body.hidden = false; body.innerHTML = '';
+  metaEl.hidden = true;
+
+  let text = '';
+  let usage = { input: 0, output: 0 };
+  let stopReason = null;
+  let failure = null;
+  let frameQueued = false;
+
+  const paint = () => {
+    if(frameQueued) return;
+    frameQueued = true;
+    requestAnimationFrame(() => {
+      frameQueued = false;
+      body.innerHTML = (NB.renderMarkdown ? NB.renderMarkdown(text) : esc(text)) + '<span class="caret"></span>';
+    });
+  };
+
+  try{
+    const response = await fetch(NB.API_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': NB.API_VERSION,
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: INSIGHT_MAX_TOKENS,
+        stream: true,
+        system: NB.buildSystemPrompt(mode),
+        messages: [{ role: 'user', content: buildDigest(CURRENT) }]
+        // 검증된 원자료를 해석하는 작업이므로 웹 검색 도구는 붙이지 않습니다.
+      })
+    });
+
+    if(!response.ok){
+      const map = { 401:'API 키가 유효하지 않습니다. 키를 다시 확인해 주십시오.',
+                    403:'API 키가 유효하지 않습니다. 키를 다시 확인해 주십시오.',
+                    429:'요청 한도를 초과했습니다. 잠시 후 다시 시도해 주십시오.',
+                    500:'서버가 일시적으로 과부하 상태입니다.',
+                    529:'서버가 일시적으로 과부하 상태입니다.' };
+      let detail = '';
+      try{ detail = (await response.text()).slice(0, 300); }catch(e){}
+      failure = map[response.status] || ('API 요청이 실패했습니다. (HTTP ' + response.status + ')' + (detail ? '\n' + detail : ''));
+    }else if(!response.body){
+      failure = '응답 스트림을 읽을 수 없습니다. 브라우저를 최신 버전으로 업데이트해 주십시오.';
+    }else{
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+      const blockTypes = new Map();
+
+      while(true){
+        const { done, value } = await reader.read();
+        if(done) break;
+        buffer += decoder.decode(value, { stream:true });
+        const chunks = buffer.split('\n\n');
+        buffer = chunks.pop() || '';
+
+        for(const chunk of chunks){
+          const payload = chunk.split('\n').filter(l => l.startsWith('data:')).map(l => l.slice(5).trim()).join('');
+          if(!payload || payload === '[DONE]') continue;
+          let evt;
+          try{ evt = JSON.parse(payload); }catch(e){ continue; }
+
+          if(evt.type === 'message_start' && evt.message?.usage){
+            usage.input += evt.message.usage.input_tokens || 0;
+            usage.output += evt.message.usage.output_tokens || 0;
+          }else if(evt.type === 'content_block_start'){
+            blockTypes.set(evt.index, evt.content_block?.type);
+            if(evt.content_block?.type === 'text' && evt.content_block.text){ text += evt.content_block.text; paint(); }
+          }else if(evt.type === 'content_block_delta'){
+            if(evt.delta?.type === 'text_delta' && blockTypes.get(evt.index) === 'text'){
+              text += evt.delta.text || ''; paint();
+            }
+          }else if(evt.type === 'message_delta'){
+            if(evt.usage) usage.output += evt.usage.output_tokens || 0;
+            if(evt.delta?.stop_reason) stopReason = evt.delta.stop_reason;
+          }else if(evt.type === 'error'){
+            failure = evt.error?.type === 'overloaded_error'
+              ? '서버가 일시적으로 과부하 상태입니다.'
+              : (evt.error?.message || '스트리밍 중 오류가 발생했습니다.');
+          }
+        }
+      }
+    }
+  }catch(error){
+    console.error('[dashboard] 해설 생성 실패:', error);
+    failure = '네트워크 오류로 요청에 실패했습니다. 인터넷 연결과 광고 차단 확장 프로그램을 확인해 주십시오.';
+  }
+
+  button.disabled = false;
+  label.textContent = '다시 생성';
+
+  const finalText = text.trim();
+  if(finalText){
+    const truncated = stopReason === 'max_tokens';
+    const stamp = formatStamp(new Date().toISOString());
+    const meta = `${stamp} 생성 · 모델 ${model} · ${mode === 'instructor' ? '교수자' : '학습자'} 모드 · ` +
+                 `토큰 입력 ${num(usage.input)} / 출력 ${num(usage.output)}` +
+                 (truncated ? ' · 길이 제한으로 중단됨' : '');
+    showInsight(finalText, meta);
+    insightCacheSet({ generatedAt: CURRENT.generatedAt, mode, model, text: finalText, meta, ts: Date.now() });
+    setInsightStatus(truncated
+      ? '<div class="note" style="margin-top:12px"><b>해설이 길이 제한으로 중단되었습니다.</b> 다시 생성하시면 다른 분량으로 작성될 수 있습니다.</div>'
+      : '');
+  }else{
+    body.hidden = true;
+  }
+
+  if(failure){
+    setInsightStatus(`<div class="err" style="margin-top:12px"><strong>해설을 생성하지 못했습니다.</strong><pre>${esc(failure)}</pre></div>`);
+  }
+}
+
+function initInsight(){
+  const button = document.getElementById('insight-run');
+  if(!button) return;
+  button.addEventListener('click', runInsight);
+
+  // 같은 데이터에 대한 해설이 이미 있으면 재호출 없이 보여줍니다.
+  const mode = effectiveMode();
+  const cached = insightCacheGet(CURRENT.generatedAt, mode);
+  if(cached){
+    showInsight(cached.text, (cached.meta || '') + ' · 저장된 해설');
+    document.getElementById('insight-run-label').textContent = '다시 생성';
+    setInsightStatus('<p class="insight-meta" style="margin-top:10px">동일한 수집 시점의 해설이 저장되어 있어 그대로 표시했습니다. 새로 생성하시려면 위 버튼을 누르십시오.</p>');
+  }
 }
 
 /* ── 테마 ─────────────────────────────────────────────── */
@@ -513,7 +867,19 @@ document.getElementById('theme').addEventListener('click', () => {
     if(!response.ok) throw new Error('HTTP ' + response.status);
     const data = await response.json();
     if(!data || typeof data !== 'object' || !data.generatedAt) throw new Error('데이터 형식이 올바르지 않습니다.');
+    CURRENT = data;
     document.getElementById('root').innerHTML = render(data);
+
+    NB = await loadSharedHook();
+    if(NB){
+      initInsight();
+    }else{
+      setInsightStatus('<div class="note" style="margin-top:12px">' +
+        '<b>AI 해설을 사용할 수 없습니다.</b> 챗봇 모듈(<code>ni-bot.html</code>)을 같은 폴더에서 불러오지 못했습니다. ' +
+        '로컬에서 여신 경우 <code>python3 -m http.server 8787</code> 로 실행한 뒤 접속해 주십시오.</div>');
+      const runBtn = document.getElementById('insight-run');
+      if(runBtn) runBtn.disabled = true;
+    }
   }catch(error){
     console.error('[dashboard]', error);
     renderError('데이터를 불러오지 못했습니다.', error.message);

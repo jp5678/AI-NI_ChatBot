@@ -14,6 +14,7 @@
 - **학습자 / 교수자 모드** — 설명 깊이, 문항 제작 방식(Bloom 수준 명시), 수업 설계 지원이 달라집니다. 교수자 모드는 비밀번호로 잠겨 있으며, 잠금 해제는 브라우저 탭 단위로만 유지됩니다.
 - **단일 HTML 파일** — 설치·빌드·서버가 필요 없습니다. 외부 리소스는 Google Fonts뿐입니다.
 - **연구 동향 대시보드** — PubMed·ClinicalTrials.gov 공개 API를 매일 자동 수집해 간호정보학 연구 추이를 시각화합니다. 차트는 외부 라이브러리 없이 SVG로 직접 그립니다.
+- **AI 해설** — 대시보드의 실측 수치를 챗봇에 전달해 해석을 받습니다. 웹 검색 없이 제시된 수치만 해석하도록 제한하여 환각을 억제합니다.
 - **접근성** — 다크/라이트 모드 모두 WCAG AA(명도대비 4.5:1) 기준을 충족합니다. 모바일 480px까지 대응합니다.
 
 ## 사용 방법
@@ -75,7 +76,19 @@ GitHub Actions가 매일 06:00 KST에 공개 API를 조회해 `data/nursing-info
 | 분석 방식 | 증감률·연평균 성장률은 모두 산술 계산. **언어모델 추론을 쓰지 않음** |
 | 장애 대응 | 조회 실패 시 직전 값을 유지하고 `warnings` 에 기록 |
 
-수동 갱신:
+### 데이터 수동 갱신
+
+**GitHub 웹 화면** — 저장소 → **Actions** 탭 → 왼쪽에서 **Collect and Deploy** 선택 → **Run workflow** 버튼 → `refresh` 를 **true** 로 지정 → 실행. 2~3분 뒤 반영됩니다.
+
+> `refresh` 를 `false` 로 두면 데이터를 새로 받지 않고 배포만 합니다.
+
+**명령줄**
+
+```bash
+gh workflow run "Collect and Deploy" -f refresh=true
+```
+
+**로컬에서 데이터만 생성** (배포는 되지 않음)
 
 ```bash
 node scripts/collect.mjs data/nursing-informatics.json
