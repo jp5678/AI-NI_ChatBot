@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-30T21:59:27.007Z",
+  "generatedAt": "2026-07-31T21:57:31.041Z",
   "currentYear": 2026,
   "latestCompleteYear": 2025,
   "comparisonYear": 2020,
@@ -33,7 +33,7 @@
     "topTopicCount": 1162,
     "fastestTopic": "간호 인공지능",
     "fastestTopicChange": 773.7,
-    "trialsTotal": 20337
+    "trialsTotal": 20360
   },
   "trend": {
     "label": "간호정보학 연간 발행 건수",
@@ -96,7 +96,7 @@
       },
       {
         "year": 2026,
-        "count": 130,
+        "count": 131,
         "partial": true
       }
     ]
@@ -118,9 +118,9 @@
         "name": "상호운용성 (FHIR·HIE)",
         "area": "02",
         "query": "(\"FHIR\"[tiab] OR \"health information exchange\"[tiab] OR \"interoperability\"[tiab]) AND (health[tiab] OR nurs*[tiab])",
-        "latest": 869,
+        "latest": 870,
         "prior": 383,
-        "changePct": 126.9,
+        "changePct": 127.2,
         "cagrPct": 17.8
       },
       {
@@ -210,7 +210,7 @@
       },
       {
         "year": 2026,
-        "count": 295,
+        "count": 297,
         "partial": true
       }
     ]
@@ -222,25 +222,25 @@
         "name": "디지털치료기기 (DTx)",
         "area": "07",
         "term": "digital therapeutic",
-        "total": 12577
+        "total": 12591
       },
       {
         "name": "임상의사결정지원",
         "area": "03",
         "term": "clinical decision support system",
-        "total": 3023
+        "total": 3028
       },
       {
         "name": "원격환자모니터링 (RPM)",
         "area": "07",
         "term": "remote patient monitoring",
-        "total": 2754
+        "total": 2756
       },
       {
         "name": "웨어러블 기반 중재",
         "area": "07",
         "term": "wearable device intervention",
-        "total": 1696
+        "total": 1698
       },
       {
         "name": "원격간호·telehealth",
