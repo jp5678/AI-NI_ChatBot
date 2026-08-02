@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-08-01T21:44:30.832Z",
+  "generatedAt": "2026-08-02T21:45:07.755Z",
   "currentYear": 2026,
   "latestCompleteYear": 2025,
   "comparisonYear": 2020,
@@ -118,10 +118,10 @@
         "name": "상호운용성 (FHIR·HIE)",
         "area": "02",
         "query": "(\"FHIR\"[tiab] OR \"health information exchange\"[tiab] OR \"interoperability\"[tiab]) AND (health[tiab] OR nurs*[tiab])",
-        "latest": 870,
+        "latest": 871,
         "prior": 383,
-        "changePct": 127.2,
-        "cagrPct": 17.8
+        "changePct": 127.4,
+        "cagrPct": 17.9
       },
       {
         "name": "전자건강기록 (EHR·EMR)",
@@ -210,7 +210,7 @@
       },
       {
         "year": 2026,
-        "count": 297,
+        "count": 298,
         "partial": true
       }
     ]
