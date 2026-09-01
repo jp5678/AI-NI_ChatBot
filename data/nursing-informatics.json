@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-01T00:12:24.832Z",
+  "generatedAt": "2026-09-01T22:54:19.440Z",
   "currentYear": 2026,
   "latestCompleteYear": 2025,
   "comparisonYear": 2020,
@@ -30,10 +30,10 @@
     "cagrPct": 13.2,
     "direction": "증가 우세",
     "topTopic": "간호 인공지능",
-    "topTopicCount": 1165,
+    "topTopicCount": 1167,
     "fastestTopic": "간호 인공지능",
-    "fastestTopicChange": 775.9,
-    "trialsTotal": 20737
+    "fastestTopicChange": 777.4,
+    "trialsTotal": 20751
   },
   "trend": {
     "label": "간호정보학 연간 발행 건수",
@@ -109,10 +109,10 @@
         "name": "간호 인공지능",
         "area": "05",
         "query": "(\"machine learning\"[tiab] OR \"artificial intelligence\"[tiab] OR \"deep learning\"[tiab]) AND nurs*[tiab]",
-        "latest": 1165,
+        "latest": 1167,
         "prior": 133,
-        "changePct": 775.9,
-        "cagrPct": 54.3
+        "changePct": 777.4,
+        "cagrPct": 54.4
       },
       {
         "name": "상호운용성 (FHIR·HIE)",
@@ -210,7 +210,7 @@
       },
       {
         "year": 2026,
-        "count": 352,
+        "count": 357,
         "partial": true
       }
     ]
@@ -222,25 +222,25 @@
         "name": "디지털치료기기 (DTx)",
         "area": "07",
         "term": "digital therapeutic",
-        "total": 12805
+        "total": 12810
       },
       {
         "name": "임상의사결정지원",
         "area": "03",
         "term": "clinical decision support system",
-        "total": 3098
+        "total": 3101
       },
       {
         "name": "원격환자모니터링 (RPM)",
         "area": "07",
         "term": "remote patient monitoring",
-        "total": 2791
+        "total": 2792
       },
       {
         "name": "웨어러블 기반 중재",
         "area": "07",
         "term": "wearable device intervention",
-        "total": 1751
+        "total": 1756
       },
       {
         "name": "원격간호·telehealth",
