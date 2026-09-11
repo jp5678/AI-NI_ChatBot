@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-10T22:51:12.362Z",
+  "generatedAt": "2026-09-11T22:53:28.158Z",
   "currentYear": 2026,
   "latestCompleteYear": 2025,
   "comparisonYear": 2020,
@@ -33,7 +33,7 @@
     "topTopicCount": 1167,
     "fastestTopic": "간호 인공지능",
     "fastestTopicChange": 777.4,
-    "trialsTotal": 20856
+    "trialsTotal": 20872
   },
   "trend": {
     "label": "간호정보학 연간 발행 건수",
@@ -127,9 +127,9 @@
         "name": "전자건강기록 (EHR·EMR)",
         "area": "03",
         "query": "(\"electronic health record*\"[tiab] OR \"electronic medical record*\"[tiab]) AND nurs*[tiab]",
-        "latest": 695,
+        "latest": 694,
         "prior": 451,
-        "changePct": 54.1,
+        "changePct": 53.9,
         "cagrPct": 9
       },
       {
@@ -210,7 +210,7 @@
       },
       {
         "year": 2026,
-        "count": 368,
+        "count": 369,
         "partial": true
       }
     ]
@@ -222,19 +222,19 @@
         "name": "디지털치료기기 (DTx)",
         "area": "07",
         "term": "digital therapeutic",
-        "total": 12869
+        "total": 12878
       },
       {
         "name": "임상의사결정지원",
         "area": "03",
         "term": "clinical decision support system",
-        "total": 3119
+        "total": 3124
       },
       {
         "name": "원격환자모니터링 (RPM)",
         "area": "07",
         "term": "remote patient monitoring",
-        "total": 2805
+        "total": 2807
       },
       {
         "name": "웨어러블 기반 중재",
