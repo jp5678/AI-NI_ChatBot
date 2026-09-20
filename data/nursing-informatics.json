@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-19T22:34:23.593Z",
+  "generatedAt": "2026-09-20T22:47:32.983Z",
   "currentYear": 2026,
   "latestCompleteYear": 2025,
   "comparisonYear": 2020,
@@ -96,7 +96,7 @@
       },
       {
         "year": 2026,
-        "count": 160,
+        "count": 161,
         "partial": true
       }
     ]
