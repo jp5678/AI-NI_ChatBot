@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-20T22:47:32.983Z",
+  "generatedAt": "2026-09-21T23:44:05.852Z",
   "currentYear": 2026,
   "latestCompleteYear": 2025,
   "comparisonYear": 2020,
@@ -33,7 +33,7 @@
     "topTopicCount": 1167,
     "fastestTopic": "간호 인공지능",
     "fastestTopicChange": 777.4,
-    "trialsTotal": 20966
+    "trialsTotal": 20984
   },
   "trend": {
     "label": "간호정보학 연간 발행 건수",
@@ -222,25 +222,25 @@
         "name": "디지털치료기기 (DTx)",
         "area": "07",
         "term": "digital therapeutic",
-        "total": 12934
+        "total": 12944
       },
       {
         "name": "임상의사결정지원",
         "area": "03",
         "term": "clinical decision support system",
-        "total": 3140
+        "total": 3144
       },
       {
         "name": "원격환자모니터링 (RPM)",
         "area": "07",
         "term": "remote patient monitoring",
-        "total": 2818
+        "total": 2819
       },
       {
         "name": "웨어러블 기반 중재",
         "area": "07",
         "term": "wearable device intervention",
-        "total": 1784
+        "total": 1787
       },
       {
         "name": "원격간호·telehealth",
