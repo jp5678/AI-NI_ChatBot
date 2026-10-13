@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-12T00:06:41.435Z",
+  "generatedAt": "2026-10-13T02:18:54.996Z",
   "currentYear": 2026,
   "latestCompleteYear": 2025,
   "comparisonYear": 2020,
@@ -23,16 +23,16 @@
   ],
   "kpi": {
     "latestYear": 2025,
-    "latestCount": 128,
+    "latestCount": 129,
     "baseYear": 2020,
     "baseCount": 69,
-    "changePct": 85.5,
-    "cagrPct": 13.2,
+    "changePct": 87,
+    "cagrPct": 13.3,
     "direction": "증가 우세",
     "topTopic": "간호 인공지능",
-    "topTopicCount": 1168,
+    "topTopicCount": 1169,
     "fastestTopic": "간호 인공지능",
-    "fastestTopicChange": 778.2,
+    "fastestTopicChange": 778.9,
     "trialsTotal": 21240
   },
   "trend": {
@@ -91,7 +91,7 @@
       },
       {
         "year": 2025,
-        "count": 128,
+        "count": 129,
         "partial": false
       },
       {
@@ -109,10 +109,10 @@
         "name": "간호 인공지능",
         "area": "05",
         "query": "(\"machine learning\"[tiab] OR \"artificial intelligence\"[tiab] OR \"deep learning\"[tiab]) AND nurs*[tiab]",
-        "latest": 1168,
+        "latest": 1169,
         "prior": 133,
-        "changePct": 778.2,
-        "cagrPct": 54.4
+        "changePct": 778.9,
+        "cagrPct": 54.5
       },
       {
         "name": "상호운용성 (FHIR·HIE)",
@@ -136,9 +136,9 @@
         "name": "원격간호 (telehealth)",
         "area": "07",
         "query": "(\"telehealth\"[tiab] OR \"telenursing\"[tiab] OR \"telemedicine\"[tiab]) AND nurs*[tiab]",
-        "latest": 552,
+        "latest": 553,
         "prior": 379,
-        "changePct": 45.6,
+        "changePct": 45.9,
         "cagrPct": 7.8
       },
       {
@@ -210,7 +210,7 @@
       },
       {
         "year": 2026,
-        "count": 423,
+        "count": 424,
         "partial": true
       }
     ]
