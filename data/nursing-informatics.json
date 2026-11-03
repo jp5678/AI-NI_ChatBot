@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-02T00:02:12.858Z",
+  "generatedAt": "2026-11-03T02:42:43.769Z",
   "currentYear": 2026,
   "latestCompleteYear": 2025,
   "comparisonYear": 2020,
@@ -30,10 +30,10 @@
     "cagrPct": 13.3,
     "direction": "증가 우세",
     "topTopic": "간호 인공지능",
-    "topTopicCount": 1171,
+    "topTopicCount": 1172,
     "fastestTopic": "간호 인공지능",
-    "fastestTopicChange": 780.5,
-    "trialsTotal": 21497
+    "fastestTopicChange": 781.2,
+    "trialsTotal": 21523
   },
   "trend": {
     "label": "간호정보학 연간 발행 건수",
@@ -96,7 +96,7 @@
       },
       {
         "year": 2026,
-        "count": 184,
+        "count": 185,
         "partial": true
       }
     ]
@@ -109,9 +109,9 @@
         "name": "간호 인공지능",
         "area": "05",
         "query": "(\"machine learning\"[tiab] OR \"artificial intelligence\"[tiab] OR \"deep learning\"[tiab]) AND nurs*[tiab]",
-        "latest": 1171,
+        "latest": 1172,
         "prior": 133,
-        "changePct": 780.5,
+        "changePct": 781.2,
         "cagrPct": 54.5
       },
       {
@@ -136,10 +136,10 @@
         "name": "원격간호 (telehealth)",
         "area": "07",
         "query": "(\"telehealth\"[tiab] OR \"telenursing\"[tiab] OR \"telemedicine\"[tiab]) AND nurs*[tiab]",
-        "latest": 555,
+        "latest": 556,
         "prior": 379,
-        "changePct": 46.4,
-        "cagrPct": 7.9
+        "changePct": 46.7,
+        "cagrPct": 8
       },
       {
         "name": "생성형 AI·LLM",
@@ -210,7 +210,7 @@
       },
       {
         "year": 2026,
-        "count": 458,
+        "count": 461,
         "partial": true
       }
     ]
@@ -222,25 +222,25 @@
         "name": "디지털치료기기 (DTx)",
         "area": "07",
         "term": "digital therapeutic",
-        "total": 13250
+        "total": 13263
       },
       {
         "name": "임상의사결정지원",
         "area": "03",
         "term": "clinical decision support system",
-        "total": 3244
+        "total": 3250
       },
       {
         "name": "원격환자모니터링 (RPM)",
         "area": "07",
         "term": "remote patient monitoring",
-        "total": 2875
+        "total": 2878
       },
       {
         "name": "웨어러블 기반 중재",
         "area": "07",
         "term": "wearable device intervention",
-        "total": 1836
+        "total": 1840
       },
       {
         "name": "원격간호·telehealth",
