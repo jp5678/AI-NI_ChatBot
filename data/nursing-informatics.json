@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-20T01:56:58.399Z",
+  "generatedAt": "2026-11-21T01:52:44.358Z",
   "currentYear": 2026,
   "latestCompleteYear": 2025,
   "comparisonYear": 2020,
@@ -33,7 +33,7 @@
     "topTopicCount": 1172,
     "fastestTopic": "간호 인공지능",
     "fastestTopicChange": 781.2,
-    "trialsTotal": 21787
+    "trialsTotal": 21793
   },
   "trend": {
     "label": "간호정보학 연간 발행 건수",
@@ -96,7 +96,7 @@
       },
       {
         "year": 2026,
-        "count": 203,
+        "count": 204,
         "partial": true
       }
     ]
@@ -210,7 +210,7 @@
       },
       {
         "year": 2026,
-        "count": 486,
+        "count": 490,
         "partial": true
       }
     ]
@@ -222,7 +222,7 @@
         "name": "디지털치료기기 (DTx)",
         "area": "07",
         "term": "digital therapeutic",
-        "total": 13418
+        "total": 13424
       },
       {
         "name": "임상의사결정지원",
